@@ -6,22 +6,36 @@ from PySide2 import QtCore, QtGui, QtSvg
 
 
 def icon(path, color, anim=None):
-    pixmapGenerator = PixmapGenerator(path, color, anim=anim)
-    iconEngine = IconEngine(pixmapGenerator)
-    return QtGui.QIcon(iconEngine)
+    _pixmapGenerator = pixmapGenerator(path, color, anim=anim)
+    _iconEngine = _IconEngine(_pixmapGenerator)
+    return _Icon(_iconEngine, _pixmapGenerator)
 
 
-class IconEngine(QtGui.QIconEngine):
+def pixmapGenerator(path, color, anim=None):
+    return _PixmapGenerator(path, color, anim=anim)
+
+
+class _Icon(QtGui.QIcon):
+
+    def __init__(self, iconEngine, pixmapGenerator):
+        super(_Icon, self).__init__(iconEngine)
+        self._pixmapGenerator = pixmapGenerator
+
+    def pixmapGenerator(self):
+        return self._pixmapGenerator
+
+
+class _IconEngine(QtGui.QIconEngine):
 
     def __init__(self, pixmapGenerator):
-        super(IconEngine, self).__init__()
+        super(_IconEngine, self).__init__()
         self._pixmapGenerator = pixmapGenerator
 
     def pixmap(self, size, mode, state):
         return self._pixmapGenerator.pixmap(size)
 
 
-class PixmapGenerator(QtCore.QObject):
+class _PixmapGenerator(QtCore.QObject):
 
     def __init__(self, path, color, anim=None, parent=None):
 
@@ -30,6 +44,9 @@ class PixmapGenerator(QtCore.QObject):
         self._anim = anim
 
         self._renderer = QtSvg.QSvgRenderer(self._path)
+
+    def anim(self):
+        return self._anim
 
     def pixmap(self, size):
         alphaImage = QtGui.QImage(size,

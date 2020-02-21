@@ -48,7 +48,7 @@ class SpinningIconAnim(AbstractAnimation):
         xfm = xfm.translate(halfSize.width(), halfSize.height())
         xfm = xfm.scale(0.8, 0.8)
         xfm = xfm.rotate(-6 * self._frame)
-        xfm = xfm.translate(-halfSize.height(), -halfSize.width())
+        xfm = xfm.translate(-halfSize.width(), -halfSize.height())
 
         return xfm
 
