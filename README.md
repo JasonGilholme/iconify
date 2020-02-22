@@ -1,1 +1,3 @@
-# iconify
+# Iconify
+
+![](coverage.svg)

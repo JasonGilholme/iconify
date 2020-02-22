@@ -61,9 +61,7 @@ class _PixmapGenerator(QtCore.QObject):
         return self._anim
 
     def pixmap(self, size):
-
         if self._anim:
-            # print self._anim._frame
             key = (self._path, self._anim.__class__, self._anim._frame, size)
         else:
             key = (self._path, size)
