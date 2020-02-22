@@ -6,7 +6,7 @@ from iconify.qt import QtCore, QtGui, QtWidgets
 def test_icon(qtbot, validIconPath):
 
     anim = iconify.anim.Spin()
-    icon = iconify.icon(
+    icon = iconify.Icon(
         'delete',
         color=QtGui.QColor('red'),
         anim=anim,
@@ -25,7 +25,7 @@ def test_pixmapGenerator(validIconPath):
     iconPath = iconify.path.findIcon('delete')
 
     anim = iconify.anim.Spin()
-    pixGen = iconify.core.pixmapGenerator(iconPath, color=QtGui.QColor('blue'), anim=anim)
+    pixGen = iconify.core.PixmapGenerator(iconPath, color=QtGui.QColor('blue'), anim=anim)
 
     size = QtCore.QSize(24, 24)
     altSize = QtCore.QSize(32, 32)

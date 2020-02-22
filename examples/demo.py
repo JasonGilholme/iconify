@@ -45,17 +45,17 @@ deleteSvg = "delete"
 clockwiseSpinningAnim = ico.anim.Spin(direction=ico.anim.Spin.Directions.CLOCKWISE)
 antiClockwiseSpinningAnim = ico.anim.SingleShotSpin(direction=ico.anim.Spin.Directions.ANTI_CLOCKWISE)
 
-spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=antiClockwiseSpinningAnim)
-spinnerIconTwo = ico.icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
-spinnerIconTwoAlt = ico.icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=clockwiseSpinningAnim)
-deleteIcon = ico.icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))
+spinnerIcon = ico.Icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=antiClockwiseSpinningAnim)
+spinnerIconTwo = ico.Icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
+spinnerIconTwoAlt = ico.Icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=clockwiseSpinningAnim)
+deleteIcon = ico.Icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))
 
 buttonOne.setIcon(deleteIcon)
 buttonOne.clicked.connect(clockwiseSpinningAnim.toggle)
 buttonOne.clicked.connect(antiClockwiseSpinningAnim.toggle)
 
-ico.setButtonIcon(buttonTwo, spinnerIcon)
-ico.setButtonIcon(buttonThree, spinnerIconTwo)
+spinnerIcon.setAsButtonIcon(buttonTwo)
+spinnerIconTwo.setAsButtonIcon(buttonThree)
 
 
 #

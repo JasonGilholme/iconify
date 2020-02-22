@@ -13,36 +13,25 @@ if TYPE_CHECKING:
 _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
 
-def icon(path, color=None, anim=None):
-    # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> _Icon
-    _pixmapGenerator = pixmapGenerator(path, color=color, anim=anim)
-    _iconEngine = _IconEngine(_pixmapGenerator)
-    return _Icon(_iconEngine, _pixmapGenerator)
+class Icon(QtGui.QIcon):
 
+    def __init__(self, path, color=None, anim=None):
+        # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> None
+        _pixmapGenerator = PixmapGenerator(path, color=color, anim=anim)
+        _iconEngine = _IconEngine(_pixmapGenerator)
 
-def pixmapGenerator(path, color=None, anim=None):
-    # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> _Icon
-    path = findIcon(path)
-    return _PixmapGenerator(path, color=color, anim=anim)
+        super(Icon, self).__init__(_iconEngine)
+        self._pixmapGenerator = _pixmapGenerator
 
-
-def setButtonIcon(button, icon):
-    # type: (QtWidgets.QAbstractButton, _Icon) -> None
-    button.setIcon(icon)
-    anim = icon.anim()
-    if anim is not None:
-        anim.tick.connect(button.update)
-
-
-class _Icon(QtGui.QIcon):
-
-    def __init__(self, iconEngine, pixmapGenerator):
-        # type: (_IconEngine, _PixmapGenerator) -> None
-        super(_Icon, self).__init__(iconEngine)
-        self._pixmapGenerator = pixmapGenerator
+    def setAsButtonIcon(self, button):
+        # type: (QtWidgets.QAbstractButton) -> None
+        button.setIcon(self)
+        anim = self.anim()
+        if anim is not None:
+            anim.tick.connect(button.update)
 
     def pixmapGenerator(self):
-        # type: () -> _PixmapGenerator
+        # type: () -> PixmapGenerator
         return self._pixmapGenerator
 
     def anim(self):
@@ -53,7 +42,7 @@ class _Icon(QtGui.QIcon):
 class _IconEngine(QtGui.QIconEngine):
 
     def __init__(self, pixmapGenerator):
-        # type: (_PixmapGenerator) -> None
+        # type: (PixmapGenerator) -> None
         super(_IconEngine, self).__init__()
         self._pixmapGenerator = pixmapGenerator
 
@@ -62,12 +51,12 @@ class _IconEngine(QtGui.QIconEngine):
         return self._pixmapGenerator.pixmap(size)
 
 
-class _PixmapGenerator(QtCore.QObject):
+class PixmapGenerator(QtCore.QObject):
 
     def __init__(self, path, color=None, anim=None, parent=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation], Optional[QtCore.QObject]) -> None
-        super(_PixmapGenerator, self).__init__(parent=parent)
-        self._path = path
+        super(PixmapGenerator, self).__init__(parent=parent)
+        self._path = findIcon(path)
         self._color = color
         self._anim = anim
 
