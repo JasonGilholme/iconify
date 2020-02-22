@@ -1,6 +1,5 @@
 
 import os
-import pydoc
 
 from kids.cache import cache
 
@@ -13,11 +12,13 @@ class IconNotFoundError(Exception):
 
 
 def addIconDirectory(directoryLocation):
+    # type: (str) -> None
     _ICON_PATH.append(directoryLocation)
 
 
 @cache
 def findIcon(iconPath):
+    # type: (str) -> str
     if os.path.isabs(iconPath):
         if not os.path.isfile(iconPath):
             raise IconNotFoundError("Unable to locate icon file: {}".format(iconPath))

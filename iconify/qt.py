@@ -2,13 +2,18 @@
 import os
 import pydoc
 
+from typing import TYPE_CHECKING
 
-qtlib = os.environ.get("ICONIFY_QTLIB", "PySide2")
+if TYPE_CHECKING:
+    from typing import *
+    from PySide2 import QtCore, QtGui, QtSvg, QtWidgets
+else:
+    qtlib = os.environ.get("ICONIFY_QTLIB", "PySide2")
 
-QtCore = pydoc.locate(qtlib + '.QtCore')
-QtGui = pydoc.locate(qtlib + '.QtGui')
-QtSvg = pydoc.locate(qtlib + '.QtSvg')
-QtWidgets = pydoc.locate(qtlib + '.QtWidgets')
+    QtCore = pydoc.locate(qtlib + '.QtCore')
+    QtGui = pydoc.locate(qtlib + '.QtGui')
+    QtSvg = pydoc.locate(qtlib + '.QtSvg')
+    QtWidgets = pydoc.locate(qtlib + '.QtWidgets')
 
 
 _IMPORT_ERROR_MESSAGE = \

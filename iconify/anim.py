@@ -1,14 +1,21 @@
 
+from enum import Enum
+from typing import TYPE_CHECKING
+
 from iconify.qt import QtCore, QtGui
+
+if TYPE_CHECKING:
+    from typing import *
 
 
 class _GlobalTicker(QtCore.QObject):
 
     timeout = QtCore.Signal()
 
-    _instance = None
+    _instance = None  # type: Optional[_GlobalTicker]
 
     def __init__(self):
+        # type: () -> None
         # Note: No parent so it's owned by Qt
         super(_GlobalTicker, self).__init__()
         self._tick = QtCore.QTimer()
@@ -18,6 +25,7 @@ class _GlobalTicker(QtCore.QObject):
 
     @classmethod
     def instance(cls):
+        # type: () -> _GlobalTicker
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
@@ -37,46 +45,56 @@ class BaseAnimation(QtCore.QObject):
         self._active = False
 
     def transform(self, rect):
+        # type: (QtCore.QRect) -> QtGui.QTransform
         return QtGui.QTransform()
 
     def start(self):
+        # type: () -> None
         _GlobalTicker.instance().timeout.connect(self._tick)
         self._active = True
 
     def stop(self):
+        # type: () -> None
         self.pause()
         self._frame = self._minFrame
 
     def pause(self):
+        # type: () -> None
         _GlobalTicker.instance().timeout.disconnect(self._tick)
         self._active = False
 
     def toggle(self):
+        # type: () -> None
         if self._active:
             self.pause()
         else:
             self.start()
 
     def frame(self):
+        # type: () -> int
         return self._frame
 
     def forceTick(self):
+        # type: () -> None
         self._tick()
 
     def incrementFrame(self):
+        # type: () -> None
         if self._frame == self._maxFrame:
             self._frame = self._minFrame
         else:
             self._frame += 1
 
     def _tick(self):
+        # type: () -> None
         self.incrementFrame()
         self.tick.emit()
 
 
 class SingleShotMixin(object):
 
-    def incrementFrame(self):
+    def incrementFrame(self):  # type: ignore[misc]
+        # type: (BaseAnimation) -> None
         if self._frame == self._maxFrame:
             self._frame = self._minFrame
             self.stop()
@@ -86,18 +104,22 @@ class SingleShotMixin(object):
 
 class Spin(BaseAnimation):
 
-    CLOCKWISE = 0
-    ANTI_CLOCKWISE = 1
+    class Directions(Enum):
 
-    def __init__(self, direction=CLOCKWISE):
+        CLOCKWISE = 0
+        ANTI_CLOCKWISE = 1
+
+    def __init__(self, direction=Directions.CLOCKWISE):
+        # type: (Spin.Directions) -> None
         super(Spin, self).__init__()
         self._direction = direction
         self._maxFrame = 59
 
     def transform(self, size):
+        # type: (QtCore.QSize) -> QtGui.QTransform
         halfSize = size / 2
 
-        rotation = 6 if self._direction == Spin.CLOCKWISE else -6
+        rotation = 6 if self._direction == Spin.Directions.CLOCKWISE else -6
 
         xfm = QtGui.QTransform()
         xfm = xfm.translate(halfSize.width(), halfSize.height())

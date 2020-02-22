@@ -42,8 +42,8 @@ spinnerSvg = "github"
 spinnerTwoSvg = "spinners:colored"
 deleteSvg = "delete"
 
-clockwiseSpinningAnim = ico.anim.Spin(direction=ico.anim.Spin.CLOCKWISE)
-antiClockwiseSpinningAnim = ico.anim.SingleShotSpin(direction=ico.anim.Spin.ANTI_CLOCKWISE)
+clockwiseSpinningAnim = ico.anim.Spin(direction=ico.anim.Spin.Directions.CLOCKWISE)
+antiClockwiseSpinningAnim = ico.anim.SingleShotSpin(direction=ico.anim.Spin.Directions.ANTI_CLOCKWISE)
 
 spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=antiClockwiseSpinningAnim)
 spinnerIconTwo = ico.icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
