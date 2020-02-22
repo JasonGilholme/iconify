@@ -1,42 +1,104 @@
 
-import os
-import pydoc
-
-qtlib = os.environ.get("ICONIFY_QTLIB", "PySide2")
-
-QtCore = pydoc.locate(qtlib + '.QtCore')
-QtGui = pydoc.locate(qtlib + '.QtGui')
-QtSvg = pydoc.locate(qtlib + '.QtSvg')
-QtWidgets = pydoc.locate(qtlib + '.QtWidgets')
-
-if QtCore is None:
-    raise ImportError('Unable to import QtCore!')
-
-if QtGui is None:
-    raise ImportError('Unable to import QtGui!')
-
-if QtSvg is None:
-    raise ImportError('Unable to import QtSvg!')
-
-if QtWidgets is None:
-    raise ImportError('Unable to import QtWidgets!')
+from iconify.qt import QtCore, QtGui, QtSvg
+from iconify.path import findIcon
 
 
-_ICON_PATH = os.environ.get('ICONIFY_PATH', os.getcwd()).split(os.pathsep)
+_PIXMAP_CACHE = {}
 
 
-def find_icon(icon_path):
-    if os.path.isabs(icon_path):
-        if not os.path.isfile(icon_path):
-            raise RuntimeError("Unable to locate icon file: %s" % (icon_path,))
-        return icon_path
-    else:
-        for dir_ in _ICON_PATH:
-            abs_icon_path = os.path.join(dir_, icon_path)
-            if os.path.isfile(abs_icon_path):
-                return abs_icon_path
+def icon(path, color=None, anim=None):
+    _pixmapGenerator = pixmapGenerator(path, color=color, anim=anim)
+    _iconEngine = _IconEngine(_pixmapGenerator)
+    return _Icon(_iconEngine, _pixmapGenerator)
 
-        raise Exception(
-            "Unable to find an icon on the ICONIFY_PATH that matches '%s'" %
-            (icon_path,)
+
+def pixmapGenerator(path, color=None, anim=None):
+    path = findIcon(path)
+    return _PixmapGenerator(path, color=color, anim=anim)
+
+
+def setButtonIcon(button, icon):
+    button.setIcon(icon)
+    anim = icon.anim()
+    if anim is not None:
+        anim.tick.connect(button.update)
+
+
+class _Icon(QtGui.QIcon):
+
+    def __init__(self, iconEngine, pixmapGenerator):
+        super(_Icon, self).__init__(iconEngine)
+        self._pixmapGenerator = pixmapGenerator
+
+    def pixmapGenerator(self):
+        return self._pixmapGenerator
+
+    def anim(self):
+        return self._pixmapGenerator.anim()
+
+
+class _IconEngine(QtGui.QIconEngine):
+
+    def __init__(self, pixmapGenerator):
+        super(_IconEngine, self).__init__()
+        self._pixmapGenerator = pixmapGenerator
+
+    def pixmap(self, size, mode, state):
+        return self._pixmapGenerator.pixmap(size)
+
+
+class _PixmapGenerator(QtCore.QObject):
+
+    def __init__(self, path, color=None, anim=None, parent=None):
+        super(_PixmapGenerator, self).__init__(parent=parent)
+        self._path = path
+        self._color = color
+        self._anim = anim
+
+        self._renderer = QtSvg.QSvgRenderer(self._path)
+
+    def anim(self):
+        return self._anim
+
+    def pixmap(self, size):
+
+        if self._anim:
+            # print self._anim._frame
+            key = (self._path, self._anim.__class__, self._anim._frame, size)
+        else:
+            key = (self._path, size)
+
+        if key in _PIXMAP_CACHE:
+            return _PIXMAP_CACHE[key]
+
+        image = QtGui.QImage(
+            size,
+            QtGui.QImage.Format_ARGB32_Premultiplied,
         )
+        image.fill(QtCore.Qt.transparent)
+
+        # Use the QSvgRenderer to draw the image
+        painter = QtGui.QPainter(image)
+
+        if self._anim:
+            # Rotate the painter's co-ordinate space so
+            # the image is correctly positioned.
+            xfm = self._anim.transform(size)
+            painter.setTransform(xfm)
+
+        self._renderer.render(painter)
+        painter.end()
+
+        if self._color is not None:
+            # Use the alpha channel on a solid colour image
+            colorImage = QtGui.QImage(
+                size,
+                QtGui.QImage.Format_ARGB32_Premultiplied,
+            )
+            colorImage.fill(QtGui.QColor(self._color))
+            colorImage.setAlphaChannel(image.alphaChannel())
+            image = colorImage
+
+        pixmap = QtGui.QPixmap.fromImage(image)
+        _PIXMAP_CACHE[key] = pixmap
+        return pixmap

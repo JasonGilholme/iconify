@@ -1,6 +1,14 @@
 
-import iconify as ico
+
+import os
+
+os.environ["ICONIFY_QTLIB"] = "PySide2"
+os.environ["ICONIFY_PATH"] = os.path.dirname(__file__) + "/icons"
+
 from PySide2 import QtCore, QtGui, QtWidgets
+
+import iconify as ico
+
 
 app = QtWidgets.QApplication([])
 
@@ -30,15 +38,16 @@ frame.show()
 
 
 # Apply iconify icons
-spinnerSvg = "/Users/jasong/Code/iconify/spinner.svg"
-spinnerTwoSvg = "/Users/jasong/Code/iconify/spinner_two.svg"
-deleteSvg = "/Users/jasong/Code/iconify/delete.svg"
+spinnerSvg = "spinners/dots.svg"
+spinnerTwoSvg = "spinners/colored.svg"
+deleteSvg = "delete.svg"
 
 clockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.CLOCKWISE)
 antiClockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.ANTI_CLOCKWISE)
 
 spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(45, 150, 150), anim=antiClockwiseSpinningAnim)
 spinnerIconTwo = ico.icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
+spinnerIconTwoAlt = ico.icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=clockwiseSpinningAnim)
 deleteIcon = ico.icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))
 
 buttonOne.setIcon(deleteIcon)
@@ -79,7 +88,7 @@ class Label(QtWidgets.QLabel):
         painter.end()
 
 
-label = Label(spinnerIcon.pixmapGenerator())
+label = Label(spinnerIconTwoAlt.pixmapGenerator())
 lyt.addWidget(label)
 
 import sys

@@ -1,5 +1,5 @@
 
-from iconify.core import QtCore, QtGui
+from iconify.qt import QtCore, QtGui
 
 
 class _GlobalTicker(QtCore.QObject):
@@ -9,6 +9,7 @@ class _GlobalTicker(QtCore.QObject):
     _instance = None
 
     def __init__(self):
+        # Note: No parent so it's owned by Qt
         super(_GlobalTicker, self).__init__()
         self._tick = QtCore.QTimer()
         self._tick.timeout.connect(self.timeout.emit)
@@ -22,13 +23,13 @@ class _GlobalTicker(QtCore.QObject):
         return cls._instance
 
 
-class AbstractAnimation(QtCore.QObject):
+class BaseAnimation(QtCore.QObject):
 
     tick = QtCore.Signal()
 
-    def __init__(self):
-        # type: () -> None
-        super(AbstractAnimation, self).__init__()
+    def __init__(self, parent=None):
+        # type: (Optional[QtCore.QObject]) -> None
+        super(BaseAnimation, self).__init__(parent=parent)
         self._minFrame = 0
         self._maxFrame = 100
 
@@ -65,7 +66,7 @@ class AbstractAnimation(QtCore.QObject):
         return QtGui.QTransform()
 
 
-class SpinningIconAnim(AbstractAnimation):
+class SpinningIconAnim(BaseAnimation):
 
     CLOCKWISE = 0
     ANTI_CLOCKWISE = 1

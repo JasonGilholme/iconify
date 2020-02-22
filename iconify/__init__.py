@@ -1,4 +1,4 @@
 
-from .engine import icon, pixmapGenerator, setButtonIcon
-
+from .core import icon, pixmapGenerator, setButtonIcon
 from . import anim
+from . import path
