@@ -129,6 +129,7 @@ class Spin(BaseAnimation):
         return xfm
 
 
+
 class SingleShotSpin(SingleShotMixin, Spin):
     pass
 
