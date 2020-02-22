@@ -38,9 +38,9 @@ frame.show()
 
 
 # Apply iconify icons
-spinnerSvg = "spinners/dots.svg"
-spinnerTwoSvg = "spinners/colored.svg"
-deleteSvg = "delete.svg"
+spinnerSvg = "spinners:dots"
+spinnerTwoSvg = "spinners:colored"
+deleteSvg = "delete"
 
 clockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.CLOCKWISE)
 antiClockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.ANTI_CLOCKWISE)

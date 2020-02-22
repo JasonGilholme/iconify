@@ -36,6 +36,9 @@ class BaseAnimation(QtCore.QObject):
         self._frame = self._minFrame
         self._active = False
 
+    def transform(self, rect):
+        return QtGui.QTransform()
+
     def start(self):
         _GlobalTicker.instance().timeout.connect(self._tick)
         self._active = True
@@ -54,6 +57,12 @@ class BaseAnimation(QtCore.QObject):
         else:
             self.start()
 
+    def frame(self):
+        return self._frame
+
+    def forceTick(self):
+        self._tick()
+
     def _tick(self):
         if self._frame == self._maxFrame:
             self._frame = self._minFrame
@@ -61,9 +70,6 @@ class BaseAnimation(QtCore.QObject):
             self._frame += 1
 
         self.tick.emit()
-
-    def transform(self, rect):
-        return QtGui.QTransform()
 
 
 class SpinningIconAnim(BaseAnimation):

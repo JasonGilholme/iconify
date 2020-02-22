@@ -18,17 +18,17 @@ def addIconDirectory(directoryLocation):
 
 @cache
 def findIcon(iconPath):
-    print 'finding icon path', iconPath
     if os.path.isabs(iconPath):
         if not os.path.isfile(iconPath):
             raise IconNotFoundError("Unable to locate icon file: {}".format(iconPath))
         return iconPath
     else:
+        iconPath = iconPath.replace(":", os.sep)
         for dir_ in _ICON_PATH:
-            absIconPath = os.path.join(dir_, iconPath)
+            absIconPath = os.path.join(dir_, iconPath + ".svg")
             if os.path.isfile(absIconPath):
                 return absIconPath
 
         raise IconNotFoundError(
-            "Unable to find an icon on the ICONIFY_PATH that matches '{}'".format(icon_path)
+            "Unable to find an icon on the ICONIFY_PATH that matches '{}'".format(iconPath)
         )
