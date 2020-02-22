@@ -41,14 +41,26 @@ class AbstractAnimation(QtCore.QObject):
 
 class SpinningIconAnim(AbstractAnimation):
 
+    CLOCKWISE = 0
+    ANTI_CLOCKWISE = 1
+
+    def __init__(self, direction=CLOCKWISE):
+        super(SpinningIconAnim, self).__init__()
+        self._direction = direction
+
     def transform(self, size):
         halfSize = size / 2
+
+        rotation = 6 if self._direction == SpinningIconAnim.CLOCKWISE else -6
 
         xfm = QtGui.QTransform()
         xfm = xfm.translate(halfSize.width(), halfSize.height())
         xfm = xfm.scale(0.8, 0.8)
-        xfm = xfm.rotate(-6 * self._frame)
+        xfm = xfm.rotate(rotation * self._frame)
         xfm = xfm.translate(-halfSize.width(), -halfSize.height())
+
+        if self._frame >= 59:
+            self._frame = -1
 
         return xfm
 

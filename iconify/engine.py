@@ -1,18 +1,22 @@
 
-import attr
-from typing import *
-
-from PySide2 import QtCore, QtGui, QtSvg
+from iconify.core import QtCore, QtGui, QtSvg
 
 
-def icon(path, color, anim=None):
-    _pixmapGenerator = pixmapGenerator(path, color, anim=anim)
+def icon(path, color=None, anim=None):
+    _pixmapGenerator = pixmapGenerator(path, color=color, anim=anim)
     _iconEngine = _IconEngine(_pixmapGenerator)
     return _Icon(_iconEngine, _pixmapGenerator)
 
 
-def pixmapGenerator(path, color, anim=None):
-    return _PixmapGenerator(path, color, anim=anim)
+def pixmapGenerator(path, color=None, anim=None):
+    return _PixmapGenerator(path, color=color, anim=anim)
+
+
+def setButtonIcon(button, icon):
+    button.setIcon(icon)
+    anim = icon.anim()
+    if anim is not None:
+        anim.tick.connect(button.update)
 
 
 class _Icon(QtGui.QIcon):
@@ -23,6 +27,9 @@ class _Icon(QtGui.QIcon):
 
     def pixmapGenerator(self):
         return self._pixmapGenerator
+
+    def anim(self):
+        return self._pixmapGenerator.anim()
 
 
 class _IconEngine(QtGui.QIconEngine):
@@ -35,9 +42,12 @@ class _IconEngine(QtGui.QIconEngine):
         return self._pixmapGenerator.pixmap(size)
 
 
+CACHE = {}
+
+
 class _PixmapGenerator(QtCore.QObject):
 
-    def __init__(self, path, color, anim=None, parent=None):
+    def __init__(self, path, color=None, anim=None, parent=None):
 
         self._path = path
         self._color = color
@@ -49,23 +59,48 @@ class _PixmapGenerator(QtCore.QObject):
         return self._anim
 
     def pixmap(self, size):
-        alphaImage = QtGui.QImage(size,
-                                  QtGui.QImage.Format_ARGB32_Premultiplied)
-        alphaImage.fill(QtCore.Qt.transparent)
-        painter = QtGui.QPainter(alphaImage)
 
         if self._anim:
+            # print self._anim._frame
+            key = (self._path, self._anim.__class__, self._anim._frame, size)
+        else:
+            key = (self._path, size)
+
+        global CACHE
+
+        if key in CACHE:
+            return CACHE[key]
+
+        image = QtGui.QImage(
+            size,
+            QtGui.QImage.Format_ARGB32_Premultiplied,
+        )
+        image.fill(QtCore.Qt.transparent)
+
+        # Use the QSvgRenderer to draw the image
+        painter = QtGui.QPainter(image)
+
+        if self._anim:
+            # Rotate the painter's co-ordinate space so
+            # the image is correctly positioned.
             xfm = self._anim.transform(size)
             painter.setTransform(xfm)
 
         self._renderer.render(painter)
-
         painter.end()
 
-        # Use the alpha channel on a solid colour image
-        colorImage = QtGui.QImage(size,
-                                  QtGui.QImage.Format_ARGB32_Premultiplied)
-        colorImage.fill(QtGui.QColor(self._color))
-        colorImage.setAlphaChannel(alphaImage.alphaChannel())
+        if self._color is not None:
+            # Use the alpha channel on a solid colour image
+            colorImage = QtGui.QImage(
+                size,
+                QtGui.QImage.Format_ARGB32_Premultiplied,
+            )
+            colorImage.fill(QtGui.QColor(self._color))
+            colorImage.setAlphaChannel(image.alphaChannel())
+            image = colorImage
 
-        return QtGui.QPixmap.fromImage(colorImage)
+        pixmap = QtGui.QPixmap.fromImage(image)
+
+        CACHE[key] = pixmap
+
+        return pixmap

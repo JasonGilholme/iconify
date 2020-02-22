@@ -1,5 +1,4 @@
 
-from .engine import icon
-from .engine import pixmapGenerator
+from .engine import icon, pixmapGenerator, setButtonIcon
 
 from . import anim

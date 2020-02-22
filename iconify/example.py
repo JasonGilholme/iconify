@@ -31,21 +31,22 @@ frame.show()
 
 # Apply iconify icons
 spinnerSvg = "/Users/jasong/Code/iconify/spinner.svg"
+spinnerTwoSvg = "/Users/jasong/Code/iconify/spinner_two.svg"
 deleteSvg = "/Users/jasong/Code/iconify/delete.svg"
 
-spinningAnim = ico.anim.SpinningIconAnim()
+clockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.CLOCKWISE)
+antiClockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.ANTI_CLOCKWISE)
 
-spinnerIcon = ico.icon(spinnerSvg, QtGui.QColor.fromHsv(0, 0, 150), anim=spinningAnim)
-deleteIcon = ico.icon(deleteSvg, QtGui.QColor.fromHsv(5, 200, 200))
+spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(45, 150, 150), anim=antiClockwiseSpinningAnim)
+spinnerIconTwo = ico.icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
+deleteIcon = ico.icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))
 
 buttonOne.setIcon(deleteIcon)
-buttonOne.clicked.connect(spinningAnim.toggle)
+buttonOne.clicked.connect(clockwiseSpinningAnim.toggle)
+buttonOne.clicked.connect(antiClockwiseSpinningAnim.toggle)
 
-buttonTwo.setIcon(spinnerIcon)
-spinningAnim.tick.connect(buttonTwo.update)
-
-buttonThree.setIcon(spinnerIcon)
-spinningAnim.tick.connect(buttonThree.update)
+ico.setButtonIcon(buttonTwo, spinnerIcon)
+ico.setButtonIcon(buttonThree, spinnerIconTwo)
 
 
 #
