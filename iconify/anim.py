@@ -2,6 +2,26 @@
 from iconify.core import QtCore, QtGui
 
 
+class _GlobalTicker(QtCore.QObject):
+
+    timeout = QtCore.Signal()
+
+    _instance = None
+
+    def __init__(self):
+        super(_GlobalTicker, self).__init__()
+        self._tick = QtCore.QTimer()
+        self._tick.timeout.connect(self.timeout.emit)
+        self._tick.setInterval(17)  # 60fps - can't get more accurate as `setInterval` takes an integer
+        self._tick.start()
+
+    @classmethod
+    def instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+
 class AbstractAnimation(QtCore.QObject):
 
     tick = QtCore.Signal()
@@ -9,30 +29,36 @@ class AbstractAnimation(QtCore.QObject):
     def __init__(self):
         # type: () -> None
         super(AbstractAnimation, self).__init__()
-        self._frame = 0
+        self._minFrame = 0
+        self._maxFrame = 100
 
-        self._timer = QtCore.QTimer()
-        self._timer.timeout.connect(self._tick)
-        self._timer.setInterval(16)  # 60 fps
+        self._frame = self._minFrame
+        self._active = False
 
     def start(self):
-        self._timer.start()
+        _GlobalTicker.instance().timeout.connect(self._tick)
+        self._active = True
 
     def stop(self):
+        self.pause()
         self._frame = 0
-        self._timer.stop()
 
     def pause(self):
-        self._timer.stop()
+        _GlobalTicker.instance().timeout.disconnect(self._tick)
+        self._active = False
 
     def toggle(self):
-        if self._timer.isActive():
-            self._timer.stop()
+        if self._active:
+            self.pause()
         else:
-            self._timer.start()
+            self.start()
 
     def _tick(self):
-        self._frame += 1
+        if self._frame == self._maxFrame:
+            self._frame = self._minFrame
+        else:
+            self._frame += 1
+
         self.tick.emit()
 
     def transform(self, rect):
@@ -47,6 +73,7 @@ class SpinningIconAnim(AbstractAnimation):
     def __init__(self, direction=CLOCKWISE):
         super(SpinningIconAnim, self).__init__()
         self._direction = direction
+        self._maxFrame = 59
 
     def transform(self, size):
         halfSize = size / 2
@@ -58,9 +85,6 @@ class SpinningIconAnim(AbstractAnimation):
         xfm = xfm.scale(0.8, 0.8)
         xfm = xfm.rotate(rotation * self._frame)
         xfm = xfm.translate(-halfSize.width(), -halfSize.height())
-
-        if self._frame >= 59:
-            self._frame = -1
 
         return xfm
 
