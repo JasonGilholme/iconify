@@ -1,8 +1,6 @@
-
 import os
 
 from kids.cache import cache
-
 
 _ICON_PATH = os.environ.get('ICONIFY_PATH', os.getcwd()).split(os.pathsep)
 
@@ -21,7 +19,9 @@ def findIcon(iconPath):
     # type: (str) -> str
     if os.path.isabs(iconPath):
         if not os.path.isfile(iconPath):
-            raise IconNotFoundError("Unable to locate icon file: {}".format(iconPath))
+            raise IconNotFoundError(
+                "Unable to locate icon file: {}".format(iconPath)
+            )
         return iconPath
     else:
         iconPath = iconPath.replace(":", os.sep)
@@ -31,5 +31,6 @@ def findIcon(iconPath):
                 return absIconPath
 
         raise IconNotFoundError(
-            "Unable to find an icon on the ICONIFY_PATH that matches '{}'".format(iconPath)
+            "Unable to find an icon on the ICONIFY_PATH that matches '{}'".
+            format(iconPath)
         )

@@ -1,15 +1,14 @@
-
 from typing import TYPE_CHECKING
 
-from iconify.qt import QtCore, QtGui, QtSvg
 from iconify.path import findIcon
+from iconify.qt import QtCore, QtGui, QtSvg
 
 if TYPE_CHECKING:
     from typing import *
     from iconify.anim import BaseAnimation
     from iconify.qt import QtWidgets
-    PixmapCacheKey = Tuple[str, QtCore.QSize, Optional[Type[BaseAnimation]], Optional[int]]
-
+    PixmapCacheKey = Tuple[str, QtCore.QSize, Optional[Type[BaseAnimation]],
+                           Optional[int]]
 
 _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
@@ -81,7 +80,9 @@ class _PixmapGenerator(QtCore.QObject):
     def pixmap(self, size):
         # type: (QtCore.QSize) -> QtGui.QPixmap
         if self._anim is not None:
-            key = (self._path, size, self._anim.__class__, self._anim._frame)  # type: PixmapCacheKey
+            key = (
+                self._path, size, self._anim.__class__, self._anim._frame
+            )  # type: PixmapCacheKey
         else:
             key = (self._path, size, None, None)
 

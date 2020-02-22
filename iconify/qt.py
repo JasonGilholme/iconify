@@ -1,7 +1,5 @@
-
 import os
 import pydoc
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -19,7 +17,6 @@ else:
 _IMPORT_ERROR_MESSAGE = \
     "Unable to import {0}! Please set the 'ICONIFY_QTLIB' env var " \
     "to the location of the Qt binding you would like to use."
-
 
 if QtCore is None:
     raise ImportError(_IMPORT_ERROR_MESSAGE.format('QtCore'))
