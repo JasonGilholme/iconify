@@ -24,12 +24,12 @@ buttonOne.setFlat(True)
 lyt.addWidget(buttonOne)
 
 buttonTwo = QtWidgets.QPushButton()
-buttonTwo.setIconSize(QtCore.QSize(32, 32))
+buttonTwo.setIconSize(QtCore.QSize(64, 64))
 buttonTwo.setFlat(True)
 lyt.addWidget(buttonTwo)
 
 buttonThree = QtWidgets.QPushButton()
-buttonThree.setIconSize(QtCore.QSize(64, 64))
+buttonThree.setIconSize(QtCore.QSize(96, 96))
 buttonThree.setFlat(True)
 lyt.addWidget(buttonThree)
 
@@ -38,14 +38,14 @@ frame.show()
 
 
 # Apply iconify icons
-spinnerSvg = "spinners:dots"
+spinnerSvg = "github"
 spinnerTwoSvg = "spinners:colored"
 deleteSvg = "delete"
 
-clockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.CLOCKWISE)
-antiClockwiseSpinningAnim = ico.anim.SpinningIconAnim(direction=ico.anim.SpinningIconAnim.ANTI_CLOCKWISE)
+clockwiseSpinningAnim = ico.anim.Spin(direction=ico.anim.Spin.CLOCKWISE)
+antiClockwiseSpinningAnim = ico.anim.SingleShotSpin(direction=ico.anim.Spin.ANTI_CLOCKWISE)
 
-spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(45, 150, 150), anim=antiClockwiseSpinningAnim)
+spinnerIcon = ico.icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=antiClockwiseSpinningAnim)
 spinnerIconTwo = ico.icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
 spinnerIconTwoAlt = ico.icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=clockwiseSpinningAnim)
 deleteIcon = ico.icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))

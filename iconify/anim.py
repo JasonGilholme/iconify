@@ -13,7 +13,7 @@ class _GlobalTicker(QtCore.QObject):
         super(_GlobalTicker, self).__init__()
         self._tick = QtCore.QTimer()
         self._tick.timeout.connect(self.timeout.emit)
-        self._tick.setInterval(17)  # 60fps - can't get more accurate as `setInterval` takes an integer
+        self._tick.setInterval(17)  # 60fps (ish)
         self._tick.start()
 
     @classmethod
@@ -45,7 +45,7 @@ class BaseAnimation(QtCore.QObject):
 
     def stop(self):
         self.pause()
-        self._frame = 0
+        self._frame = self._minFrame
 
     def pause(self):
         _GlobalTicker.instance().timeout.disconnect(self._tick)
@@ -63,29 +63,41 @@ class BaseAnimation(QtCore.QObject):
     def forceTick(self):
         self._tick()
 
-    def _tick(self):
+    def incrementFrame(self):
         if self._frame == self._maxFrame:
             self._frame = self._minFrame
         else:
             self._frame += 1
 
+    def _tick(self):
+        self.incrementFrame()
         self.tick.emit()
 
 
-class SpinningIconAnim(BaseAnimation):
+class SingleShotMixin(object):
+
+    def incrementFrame(self):
+        if self._frame == self._maxFrame:
+            self._frame = self._minFrame
+            self.stop()
+        else:
+            self._frame += 1
+
+
+class Spin(BaseAnimation):
 
     CLOCKWISE = 0
     ANTI_CLOCKWISE = 1
 
     def __init__(self, direction=CLOCKWISE):
-        super(SpinningIconAnim, self).__init__()
+        super(Spin, self).__init__()
         self._direction = direction
         self._maxFrame = 59
 
     def transform(self, size):
         halfSize = size / 2
 
-        rotation = 6 if self._direction == SpinningIconAnim.CLOCKWISE else -6
+        rotation = 6 if self._direction == Spin.CLOCKWISE else -6
 
         xfm = QtGui.QTransform()
         xfm = xfm.translate(halfSize.width(), halfSize.height())
@@ -94,6 +106,10 @@ class SpinningIconAnim(BaseAnimation):
         xfm = xfm.translate(-halfSize.width(), -halfSize.height())
 
         return xfm
+
+
+class SingleShotSpin(SingleShotMixin, Spin):
+    pass
 
 
 # class BreathingIconAnim(IconAnim):
