@@ -1,3 +1,7 @@
+"""
+The primary objects for interfacing with iconify
+"""
+
 from typing import TYPE_CHECKING
 
 from iconify.path import findIcon
@@ -14,6 +18,9 @@ _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
 
 class Icon(QtGui.QIcon):
+    """
+    The Iconify Icon which renders an svg image using the provided color & anim.
+    """
 
     def __init__(self, path, color=None, anim=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> None
@@ -25,6 +32,14 @@ class Icon(QtGui.QIcon):
 
     def setAsButtonIcon(self, button):
         # type: (QtWidgets.QAbstractButton) -> None
+        """
+        Set this icon as the provided button's icon ensuring that the button
+        will update when the icon's animation is triggered.
+
+        Parameters
+        ----------
+        button : QtWidgets.QAbstractButton
+        """
         button.setIcon(self)
         anim = self.anim()
         if anim is not None:
@@ -32,14 +47,31 @@ class Icon(QtGui.QIcon):
 
     def pixmapGenerator(self):
         # type: () -> PixmapGenerator
+        """
+        Return the PixmapGenerator used by this icon.
+
+        Returns
+        -------
+        PixmapGenerator
+        """
         return self._pixmapGenerator
 
     def anim(self):
         # type: () -> Optional[BaseAnimation]
+        """
+        Return the BaseAnimation subclass used by this icon.
+
+        Returns
+        -------
+        BaseAnimation
+        """
         return self._pixmapGenerator.anim()
 
 
 class _IconEngine(QtGui.QIconEngine):
+    """
+    A QIconEngine which uses a PixmapGenerator for it's work.
+    """
 
     def __init__(self, pixmapGenerator):
         # type: (PixmapGenerator) -> None
@@ -52,6 +84,12 @@ class _IconEngine(QtGui.QIconEngine):
 
 
 class PixmapGenerator(QtCore.QObject):
+    """
+    The PixmapGenerator is responsible for rendering the svg image and
+    applying the transform from the animation during the process.
+
+    It's backed by a cache to ensure that redundant rendering does not happen.
+    """
 
     def __init__(self, path, color=None, anim=None, parent=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation], Optional[QtCore.QObject]) -> None
@@ -64,10 +102,29 @@ class PixmapGenerator(QtCore.QObject):
 
     def anim(self):
         # type: () -> Optional[BaseAnimation]
+        """
+        Return the animation used by this PixmapGenerator.
+
+        Returns
+        -------
+        BaseAnimation
+        """
         return self._anim
 
     def pixmap(self, size):
         # type: (QtCore.QSize) -> QtGui.QPixmap
+        """
+        Render the svg file, apply the color override and the animation transform
+        and return it as a QPixmap.
+
+        Parameters
+        ----------
+        size : QtCore.QSize
+
+        Returns
+        -------
+        QtGui.QPixmap
+        """
         if self._anim is not None:
             key = (
                 self._path, size, self._anim.__class__, self._anim._frame

@@ -1,3 +1,7 @@
+"""
+Image location support
+"""
+
 import os
 
 from kids.cache import cache
@@ -11,12 +15,34 @@ class IconNotFoundError(Exception):
 
 def addIconDirectory(directoryLocation):
     # type: (str) -> None
+    """
+    Add the provided path to the list of directories that iconify will use
+    when looking for svg files.
+
+    Parameters
+    ----------
+    directoryLocation : str
+    """
     _ICON_PATH.append(directoryLocation)
 
 
 @cache
 def findIcon(iconPath):
     # type: (str) -> str
+    """
+    Use the provided string to find an svg file on the iconify path.
+
+    Any `:`'s in the provided string will be replaced with the current
+    platform's directory separator.
+
+    Parameters
+    ----------
+    iconPath : str
+
+    Returns
+    -------
+    str
+    """
     if os.path.isabs(iconPath):
         if not os.path.isfile(iconPath):
             raise IconNotFoundError(

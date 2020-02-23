@@ -1,3 +1,7 @@
+"""
+The animation objects for iconify
+"""
+
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -7,16 +11,19 @@ if TYPE_CHECKING:
     from typing import *
 
 
-class _GlobalTicker(QtCore.QObject):
+class GlobalTick(QtCore.QObject):
+    """
+    A singleton timer used to trigger all animation objects created by iconify
+    """
 
     timeout = QtCore.Signal()
 
-    _instance = None  # type: Optional[_GlobalTicker]
+    _instance = None  # type: Optional[GlobalTick]
 
     def __init__(self):
         # type: () -> None
         # Note: No parent so it's owned by Qt
-        super(_GlobalTicker, self).__init__()
+        super(GlobalTick, self).__init__()
         self._tick = QtCore.QTimer()
         self._tick.timeout.connect(self.timeout.emit)
         self._tick.setInterval(17)  # 60fps (ish)
@@ -24,14 +31,25 @@ class _GlobalTicker(QtCore.QObject):
 
     @classmethod
     def instance(cls):
-        # type: () -> _GlobalTicker
+        # type: () -> GlobalTick
+        """
+        Return the global instance of the ticker.
+
+        Returns
+        -------
+        GlobalTick
+        """
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
 
 
 class BaseAnimation(QtCore.QObject):
+    """
+    The base class that should be used for all animations.
+    """
 
+    # Emited when the animation steps
     tick = QtCore.Signal()
 
     def __init__(self, parent=None):
@@ -45,40 +63,89 @@ class BaseAnimation(QtCore.QObject):
 
     def transform(self, rect):
         # type: (QtCore.QRect) -> QtGui.QTransform
+        """
+        Return a QtGui.QTransform for the current frame that will be used
+        when drawing an image in the provided QRect.
+
+        Parameters
+        ----------
+        rect : QtCore.QRect
+
+        Returns
+        -------
+        QtGui.QTransform
+        """
         return QtGui.QTransform()
 
     def start(self):
         # type: () -> None
-        _GlobalTicker.instance().timeout.connect(self._tick)
+        """
+        Start the animation.
+        """
+        GlobalTick.instance().timeout.connect(self._tick)
         self._active = True
 
     def stop(self):
         # type: () -> None
+        """
+        Stop the animation and reset the current frame back to the start.
+        """
         self.pause()
         self._frame = self._minFrame
 
     def pause(self):
         # type: () -> None
-        _GlobalTicker.instance().timeout.disconnect(self._tick)
+        """
+        Stop the animation and maintain the current frame
+        """
+        GlobalTick.instance().timeout.disconnect(self._tick)
         self._active = False
 
     def toggle(self):
         # type: () -> None
-        if self._active:
+        """
+        Start or stop the animation based on it's current state.
+        """
+        if self.active():
             self.pause()
         else:
             self.start()
 
+    def active(self):
+        # type: () -> bool
+        """
+        Indicate if the animation is currently playing.
+
+        Returns
+        -------
+        bool
+        """
+        return self._active
+
     def frame(self):
         # type: () -> int
+        """
+        Return the current frame of the animation.
+
+        Returns
+        -------
+        int
+        """
         return self._frame
 
     def forceTick(self):
         # type: () -> None
+        """
+        Manually increment the current frame.
+        """
         self._tick()
 
     def incrementFrame(self):
         # type: () -> None
+        """
+        Called when the animation is ticked allowing subclasses to provide
+        custom frame step logic e.g. single shot animations.
+        """
         if self._frame == self._maxFrame:
             self._frame = self._minFrame
         else:
@@ -91,6 +158,10 @@ class BaseAnimation(QtCore.QObject):
 
 
 class SingleShotMixin(object):
+    """
+    A mixin that overrides the incrementFrame logic so the
+    animation loops once and then stops itself.
+    """
 
     def incrementFrame(self):  # type: ignore[misc]
         # type: (BaseAnimation) -> None
@@ -102,6 +173,9 @@ class SingleShotMixin(object):
 
 
 class Spin(BaseAnimation):
+    """
+    A simple spinning animation
+    """
 
     class Directions(Enum):
 
@@ -130,7 +204,9 @@ class Spin(BaseAnimation):
 
 
 class SingleShotSpin(SingleShotMixin, Spin):
-    pass
+    """
+    A single shot spinning animation
+    """
 
 
 # class BreathingIconAnim(IconAnim):

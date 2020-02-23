@@ -1,3 +1,7 @@
+"""
+Expose Qt to iconify using the ICONIFY_QTLIB environment variable.
+"""
+
 import os
 import pydoc
 from typing import TYPE_CHECKING
