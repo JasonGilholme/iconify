@@ -11,61 +11,38 @@ if TYPE_CHECKING:
     from typing import *
     from iconify.anim import BaseAnimation
     from iconify.qt import QtWidgets
-    PixmapCacheKey = Tuple[str, QtCore.QSize, Optional[Type[BaseAnimation]],
-                           Optional[int]]
+    PixmapCacheKey = Tuple[str, QtCore.QSize, str, int]
 
 _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
 
 class Icon(QtGui.QIcon):
-    """
-    The Iconify Icon which renders an svg image using the provided color & anim.
-    """
 
-    def __init__(self, path, color=None, anim=None):
-        # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> None
-        _pixmapGenerator = PixmapGenerator(path, color=color, anim=anim)
-        _iconEngine = _IconEngine(_pixmapGenerator)
+    def __new__(cls, path, color=None, anim=None):
+        # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> QtGui.QIcon
+        pixmapGenerator = PixmapGenerator(path, color=color, anim=anim)
+        iconEngine = _IconEngine(pixmapGenerator)
+        icon = QtGui.QIcon(iconEngine)
 
-        super(Icon, self).__init__(_iconEngine)
-        self._pixmapGenerator = _pixmapGenerator
+        def _pixmapGenerator():
+            # type: () -> PixmapGenerator
+            return pixmapGenerator
 
-    def setAsButtonIcon(self, button):
-        # type: (QtWidgets.QAbstractButton) -> None
-        """
-        Set this icon as the provided button's icon ensuring that the button
-        will update when the icon's animation is triggered.
+        def _anim():
+            # type: () -> Optional[BaseAnimation]
+            return anim
 
-        Parameters
-        ----------
-        button : QtWidgets.QAbstractButton
-        """
-        button.setIcon(self)
-        anim = self.anim()
-        if anim is not None:
-            anim.tick.connect(button.update)
+        def _setAsButtonIcon(button):
+            # type: (QtWidgets.QAbstractButton) -> None
+            button.setIcon(icon)
+            if anim is not None:
+                anim.tick.connect(button.update)
 
-    def pixmapGenerator(self):
-        # type: () -> PixmapGenerator
-        """
-        Return the PixmapGenerator used by this icon.
+        icon.pixmapGenerator = _pixmapGenerator
+        icon.anim = _anim
+        icon.setAsButtonIcon = _setAsButtonIcon
 
-        Returns
-        -------
-        PixmapGenerator
-        """
-        return self._pixmapGenerator
-
-    def anim(self):
-        # type: () -> Optional[BaseAnimation]
-        """
-        Return the BaseAnimation subclass used by this icon.
-
-        Returns
-        -------
-        BaseAnimation
-        """
-        return self._pixmapGenerator.anim()
+        return icon
 
 
 class _IconEngine(QtGui.QIconEngine):
@@ -81,6 +58,12 @@ class _IconEngine(QtGui.QIconEngine):
     def pixmap(self, size, mode, state):
         # type: (QtCore.QSize, Any, Any) -> QtGui.QPixmap
         return self._pixmapGenerator.pixmap(size)
+
+    def paint(self, painter, rect, mode, state):
+        # type: (QtCore.QPainter, QtCore.QRect, Any, Any) -> None
+        painter.drawPixmap(
+            rect.topLeft(), self.pixmap(rect.size(), mode, state)
+        )
 
 
 class PixmapGenerator(QtCore.QObject):
@@ -127,10 +110,10 @@ class PixmapGenerator(QtCore.QObject):
         """
         if self._anim is not None:
             key = (
-                self._path, size, self._anim.__class__, self._anim._frame
+                self._path, size, str(self._anim.__class__), self._anim._frame
             )  # type: PixmapCacheKey
         else:
-            key = (self._path, size, None, None)
+            key = (self._path, size, "", 0)
 
         if key in _PIXMAP_CACHE:
             return _PIXMAP_CACHE[key]
