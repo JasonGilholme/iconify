@@ -17,9 +17,27 @@ _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
 
 class Icon(QtGui.QIcon):
+    """
+    The Iconify Icon which renders an svg image using the provided color & anim.
+    """
 
     def __new__(cls, path, color=None, anim=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> QtGui.QIcon
+        """
+        This returns a patched QtGui.QIcon object so that the QIcon has convenience
+        functions for finding the animation and pixmap generator, but is also
+        usable with Qt's model view framework.
+
+        Parameters
+        ----------
+        path : str
+        color : Optional[QtGui.QColor]
+        anim : Optional[BaseAnimation]
+
+        Returns
+        -------
+        QtGui.QIcon
+        """
         pixmapGenerator = PixmapGenerator(path, color=color, anim=anim)
         iconEngine = _IconEngine(pixmapGenerator)
         icon = QtGui.QIcon(iconEngine)
