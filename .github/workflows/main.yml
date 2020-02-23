@@ -9,9 +9,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install System Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install libegl1-mesa
     - name: Setup Python
       uses: actions/setup-python@v1
     - name: Install Tox and any other packages
       run: pip install tox
     - name: Run Tox
-      run: tox
+      run: xvfb-run --auto-servernum tox
