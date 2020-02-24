@@ -92,12 +92,12 @@ class PixmapGenerator(QtCore.QObject):
     It's backed by a cache to ensure that redundant rendering does not happen.
     """
 
-    def __init__(self, path=None, color=None, anim=None, parent=None):
+    def __init__(self, path, color=None, anim=None, parent=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation], Optional[QtCore.QObject]) -> None
         super(PixmapGenerator, self).__init__(parent=parent)
-        self._path = None
-        self._color = None
-        self._anim = None
+        self._path = path
+        self._color = None  # type: Optional[QtGui.QColor]
+        self._anim = None  # type: Optional[BaseAnimation]
 
         self._renderer = QtSvg.QSvgRenderer()
 
@@ -106,9 +106,11 @@ class PixmapGenerator(QtCore.QObject):
         self.setAnim(anim)
 
     def path(self):
+        # type: () -> str
         return self._path
 
     def setPath(self, path):
+        # type: (str) -> None
         if path is None:
             self._path = path
         else:
@@ -116,9 +118,11 @@ class PixmapGenerator(QtCore.QObject):
         self._renderer.load(self._path)
 
     def color(self):
+        # type: () -> Optional[QtGui.QColor]
         return self._color
 
     def setColor(self, color):
+        # type: (Optional[QtGui.QColor]) -> None
         self._color = color
 
     def anim(self):
@@ -133,8 +137,8 @@ class PixmapGenerator(QtCore.QObject):
         return self._anim
 
     def setAnim(self, anim):
+        # type: (Optional[BaseAnimation]) -> None
         self._anim = anim
-
 
     def pixmap(self, size):
         # type: (QtCore.QSize) -> QtGui.QPixmap
