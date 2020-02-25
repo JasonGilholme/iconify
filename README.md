@@ -13,6 +13,17 @@ You can install iconify from pip using the following command:
 pip install iconify
 ```
 
+To install common icon libraries, use the `fetch` module. For example, to fetch
+the font awesome icons use the following code:
+
+```python
+import iconify as ico
+
+version = '5.12.1'
+installLocation = '/path/to/install/location'
+ico.fetch.fontAwesome(version, installLocation)
+```
+
 ## Configuration
 
 Iconfiy will search paths identified by the `ICONIFY_PATH` environment variable.
