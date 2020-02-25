@@ -49,15 +49,15 @@ class BaseAnimation(QtCore.QObject):
     The base class that should be used for all animations.
     """
 
-    # Emited when the animation steps
+    # Emitted when the animation steps
     tick = QtCore.Signal()
+
+    _minFrame = 0
+    _maxFrame = 100
 
     def __init__(self, parent=None):
         # type: (Optional[QtCore.QObject]) -> None
         super(BaseAnimation, self).__init__(parent=parent)
-        self._minFrame = 0
-        self._maxFrame = 100
-
         self._frame = self._minFrame
         self._active = False
 
@@ -177,6 +177,8 @@ class Spin(BaseAnimation):
     A simple spinning animation
     """
 
+    _maxFrame = 59
+
     class Directions(Enum):
 
         CLOCKWISE = 0
@@ -186,7 +188,6 @@ class Spin(BaseAnimation):
         # type: (Spin.Directions) -> None
         super(Spin, self).__init__()
         self._direction = direction
-        self._maxFrame = 59
 
     def transform(self, size):
         # type: (QtCore.QSize) -> QtGui.QTransform
@@ -209,24 +210,51 @@ class SingleShotSpin(SingleShotMixin, Spin):
     """
 
 
-# class BreathingIconAnim(IconAnim):
 #
-#     def __init__(self, widget):
-#         super(BreathingIconAnim, self).__init__(widget)
+# def parametricEase(t):
+#     sqt = t * t
+#     return sqt / (2.0 * (sqt - t) + 1.0)
 #
-#         self._scale = 0.995
+#
+# class Breathe(BaseAnimation):
+#
+#     _maxFrame = 30
+#
+#     keyframes = (
+#         (0, 0.65),
+#         (25, 0.9),
+#         (60, 0.85),
+#         (100, 0.65),
+#     )
 #
 #     def transform(self, size):
+#
+#         currFrame = self.frame()
+#         prevKey = None
+#         nextKey = None
+#         scale = None
+#
+#         for frame, value in keyFrames:
+#             if frame == currFrame:
+#                 scale = value
+#                 break
+#
+#
+#
+#
+#         t = float(self._frame) / self._maxFrame
+#         m = parametricEase(t)
+#
+#         scale = 0.7 + (0.2 * m)
+#
+#         print(scale)
+#
 #         halfSize = size / 2
 #
 #         xfm = QtGui.QTransform()
 #         xfm = xfm.translate(halfSize.width(), halfSize.height())
-#         if xfm.m11() >= 0.9:
-#             self._scale = 0.995
-#         elif xfm.m11() <= 0.7:
-#             self._scale = 1.005
 #
-#         xfm = xfm.scale(self._scale, self._scale)
+#         xfm = xfm.scale(scale, scale)
 #         xfm = xfm.translate(-halfSize.height(), -halfSize.width())
 #
 #         return xfm

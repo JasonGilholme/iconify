@@ -2,6 +2,7 @@
 Image location support
 """
 
+import fnmatch
 import os
 
 from kids.cache import cache
@@ -60,3 +61,16 @@ def findIcon(iconPath):
             "Unable to find an icon on the ICONIFY_PATH that matches '{}'".
             format(iconPath)
         )
+
+
+def listIcons():
+    matches = []
+    for dir_ in _ICON_PATH:
+        for root, dirnames, filenames in os.walk(dir_):
+            for filename in fnmatch.filter(filenames, '*.svg'):
+                filePath = os.path.join(root, filename)
+                filePath = filePath.replace(dir_, "")
+                filePath, _ = os.path.splitext(filePath)
+                filePath = filePath.lstrip('/').replace("/", ":")
+                matches.append(filePath)
+    return matches

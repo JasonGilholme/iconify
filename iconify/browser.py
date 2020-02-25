@@ -9,104 +9,187 @@ os.environ["ICONIFY_QTLIB"] = "PySide2"
 os.environ["ICONIFY_PATH"] = os.path.dirname(__file__) + "/../examples/icons"
 
 import iconify as ico
-from iconify.qt import QtCore, QtGui, QtSvg, QtWidgets
+from iconify.qt import QtCore, QtGui, QtWidgets
 
 
-class IconifyBrowser(QtWidgets.QMainWindow):
+VIEW_COLUMNS = 6
+AUTO_SEARCH_TIMEOUT = 500
+
+
+class Browser(QtWidgets.QMainWindow):
 
     def __init__(self):
-        super(IconifyBrowser, self).__init__()
+        super(Browser, self).__init__()
+        self.setMinimumSize(400, 300)
+        self.setWindowTitle('Iconify Browser')
 
-        self._pixmapGenerator = ico.PixmapGenerator()
+        iconNames = ico.path.listIcons()
+        # iconNames = ('delete', 'github', 'duotone', 'spinners:dots', 'account-minus', 'color', 'playstation')
 
-        self._frame = QtWidgets.QFrame(self)
+        self._filterTimer = QtCore.QTimer(self)
+        self._filterTimer.setSingleShot(True)
+        self._filterTimer.setInterval(AUTO_SEARCH_TIMEOUT)
+        self._filterTimer.timeout.connect(self._updateFilter)
 
-        self.setCentralWidget(self._frame)
+        model = Model()
+        model.setStringList(sorted(iconNames))
 
-        lyt = QtWidgets.QHBoxLayout(self)
+        self._proxyModel = QtCore.QSortFilterProxyModel()
+        self._proxyModel.setSourceModel(model)
+        self._proxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
-        self._iconModel = IconModel(self)
-        self._iconModel.setStringList(('delete', 'github'))
-        self._iconView = QtWidgets.QListView(self)
-        self._iconView.setUniformItemSizes(True)
-        self._iconView.setViewMode(QtWidgets.QListView.IconMode)
-        self._iconView.setGridSize(QtCore.QSize(80, 80))
-        self._iconView.setIconSize(QtCore.QSize(48, 48))
+        self._listView = View(self)
+        self._listView.setUniformItemSizes(True)
+        self._listView.setViewMode(QtWidgets.QListView.IconMode)
+        self._listView.setModel(self._proxyModel)
+        self._listView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self._listView.doubleClicked.connect(self._copyIconText)
 
-        self._iconView.setModel(self._iconModel)
+        self._lineEdit = QtWidgets.QLineEdit(self)
+        self._lineEdit.setAlignment(QtCore.Qt.AlignCenter)
+        self._lineEdit.textChanged.connect(self._triggerDelayedUpdate)
+        self._lineEdit.returnPressed.connect(self._triggerImmediateUpdate)
 
-        sidePanel = QtWidgets.QFrame(self)
-        sidePanel.setFixedWidth(200)
+        lyt = QtWidgets.QHBoxLayout()
+        lyt.setContentsMargins(0, 0, 0, 0)
+        lyt.addWidget(self._lineEdit)
 
-        sideLayout = QtWidgets.QVBoxLayout(sidePanel)
+        searchBarFrame = QtWidgets.QFrame(self)
+        searchBarFrame.setLayout(lyt)
 
-        self._previewLabel = Label(self._pixmapGenerator)
-        self._previewLabel.setStyleSheet('border: 1px solid black')
+        self._copyButton = QtWidgets.QPushButton('Copy Name', self)
+        self._copyButton.clicked.connect(self._copyIconText)
 
-        sideLayout.addWidget(self._previewLabel)
+        lyt = QtWidgets.QVBoxLayout()
+        lyt.addWidget(searchBarFrame)
+        lyt.addWidget(self._listView)
+        lyt.addWidget(self._copyButton)
 
-        sidePanel.setLayout(sideLayout)
+        frame = QtWidgets.QFrame(self)
+        frame.setLayout(lyt)
 
-        lyt.addWidget(self._iconView)
-        lyt.addWidget(sidePanel)
+        self.setCentralWidget(frame)
 
-        self._frame.setLayout(lyt)
+        QtWidgets.QShortcut(
+            QtGui.QKeySequence(QtCore.Qt.Key_Return),
+            self,
+            self._copyIconText,
+        )
 
-        self._iconView.selectionModel().selectionChanged.connect(self._updateImage)
+        self._lineEdit.setFocus()
 
-    def _updateImage(self):
-        index = self._iconView.selectionModel().currentIndex()
+        geo = self.geometry()
+        desktop = QtWidgets.QApplication.desktop()
+        screen = desktop.screenNumber(desktop.cursor().pos())
+        centerPoint = desktop.screenGeometry(screen).center()
+        geo.moveCenter(centerPoint)
+        self.setGeometry(geo)
 
-        self._pixmapGenerator.setPath(index.data())
+    def _updateFilter(self):
+        """
+        Update the string used for filtering in the proxy model with the
+        current text from the line edit.
+        """
+        searchTerm = self._lineEdit.text()
+        if searchTerm:
+            reString = ".*%s.*$" % searchTerm
+        else:
+            reString = ""
 
-class IconModel(QtCore.QStringListModel):
+        self._proxyModel.setFilterRegExp(reString)
+
+    def _triggerDelayedUpdate(self):
+        """
+        Reset the timer used for committing the search term to the proxy model.
+        """
+        self._filterTimer.stop()
+        self._filterTimer.start()
+
+    def _triggerImmediateUpdate(self):
+        """
+        Stop the timer used for committing the search term and update the
+        proxy model immediately.
+        """
+        self._filterTimer.stop()
+        self._updateFilter()
+
+    def _copyIconText(self):
+        """
+        Copy the name of the currently selected icon to the clipboard.
+        """
+        indexes = self._listView.selectedIndexes()
+        if not indexes:
+            return
+
+        clipboard = QtWidgets.QApplication.instance().clipboard()
+        clipboard.setText(indexes[0].data())
+
+
+class View(QtWidgets.QListView):
+    """
+    A QListView that scales it's grid size to ensure the same number of
+    columns are always drawn.
+    """
+
+    def __init__(self, parent=None):
+        super(View, self).__init__(parent)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+
+    def resizeEvent(self, event):
+        """
+        Re-implemented to re-calculate the grid size to provide scaling icons
+
+        Parameters
+        ----------
+        event : QtCore.QEvent
+        """
+        width = self.viewport().width() - 30
+        # The minus 30 above ensures we don't end up with an item width that
+        # can't be drawn the expected number of times across the view without
+        # being wrapped. Without this, the view can flicker during resize
+        tileWidth = width / VIEW_COLUMNS
+        iconWidth = int(tileWidth * 0.8)
+
+        self.setGridSize(QtCore.QSize(tileWidth, tileWidth))
+        self.setIconSize(QtCore.QSize(iconWidth, iconWidth))
+
+        return super(View, self).resizeEvent(event)
+
+
+class Model(QtCore.QStringListModel):
 
     def flags(self, index):
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role):
+        """
+        Re-implemented to return the icon for the current index.
+
+        Parameters
+        ----------
+        index : QtCore.QModelIndex
+        role : int
+
+        Returns
+        -------
+        Any
+        """
         if role == QtCore.Qt.DecorationRole:
-            return ico.Icon(self.data(index, role=QtCore.Qt.DisplayRole))
-        return super(IconModel, self).data(index, role=role)
+            iconString = self.data(index, role=QtCore.Qt.DisplayRole)
+            return ico.Icon(iconString)
+        return super(Model, self).data(index, role)
 
 
-class Label(QtWidgets.QLabel):
-
-    def __init__(self, pixmapGenerator=None):
-        super(Label, self).__init__()
-        self._pixmapGenerator = pixmapGenerator
-
-    def setPixmapGenerator(self, pixmapGenerator):
-        self._pixmapGenerator = pixmapGenerator
-        self.update()
-
-    def paintEvent(self, event):
-        super(Label, self).paintEvent(event)
-
-        if self._pixmapGenerator is None:
-            return
-
-        rect = event.rect()
-
-        if rect.width() > rect.height():
-            size = QtCore.QSize(rect.height(), rect.height())
-        else:
-            size = QtCore.QSize(rect.width(), rect.width())
-
-        pixmap = self._pixmapGenerator.pixmap(size)
-
-        painter = QtGui.QPainter(self)
-        halfSize  = size / 2
-        point = rect.center() - QtCore.QPoint(halfSize.width(), halfSize.height())
-        painter.drawPixmap(point, pixmap)
-        painter.end()
-
-
-
-if __name__ == '__main__':
+def run():
+    """
+    Start the Iconify Browser and block until the process exits.
+    """
     app = QtWidgets.QApplication([])
 
-    browser = IconifyBrowser()
+    browser = Browser()
     browser.show()
 
     sys.exit(app.exec_())
+
+
+run()

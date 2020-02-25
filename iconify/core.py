@@ -38,7 +38,7 @@ class Icon(QtGui.QIcon):
         -------
         QtGui.QIcon
         """
-        pixmapGenerator = PixmapGenerator(path, color=color, anim=anim)
+        pixmapGenerator = PixmapGenerator(path=path, color=color, anim=anim)
         iconEngine = _IconEngine(pixmapGenerator)
         icon = QtGui.QIcon(iconEngine)
 
@@ -92,10 +92,10 @@ class PixmapGenerator(QtCore.QObject):
     It's backed by a cache to ensure that redundant rendering does not happen.
     """
 
-    def __init__(self, path, color=None, anim=None, parent=None):
+    def __init__(self, path=None, color=None, anim=None, parent=None):
         # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation], Optional[QtCore.QObject]) -> None
         super(PixmapGenerator, self).__init__(parent=parent)
-        self._path = path
+        self._path = None  # type: Optional[str]
         self._color = None  # type: Optional[QtGui.QColor]
         self._anim = None  # type: Optional[BaseAnimation]
 
@@ -106,11 +106,11 @@ class PixmapGenerator(QtCore.QObject):
         self.setAnim(anim)
 
     def path(self):
-        # type: () -> str
+        # type: () -> Optional[str]
         return self._path
 
     def setPath(self, path):
-        # type: (str) -> None
+        # type: (Optional[str]) -> None
         if path is None:
             self._path = path
         else:
@@ -156,7 +156,7 @@ class PixmapGenerator(QtCore.QObject):
         """
         if self._anim is not None:
             key = (
-                self._path, size, str(self._anim.__class__), self._anim._frame
+                self._path, size, str(self._anim.__class__), self._anim.frame()
             )  # type: PixmapCacheKey
         else:
             key = (self._path, size, "", 0)
