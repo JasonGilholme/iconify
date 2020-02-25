@@ -10,5 +10,7 @@ setup(
     author_email='jasongilholme@gmail.com',
     description='',
     packages=find_packages(),
-    install_requires=['kids.cache==0.0.7'],
+    entry_points={
+        'console_scripts': ['iconify-browser=iconify.browser:run'],
+    }
 )

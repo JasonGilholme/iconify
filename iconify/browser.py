@@ -190,6 +190,3 @@ def run():
     browser.show()
 
     sys.exit(app.exec_())
-
-
-run()
