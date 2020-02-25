@@ -74,7 +74,7 @@ For animation, instantiate an animation object and pass it in via the `anim` kwa
 ```python
 import iconify as ico
 
-anim = ico.anim.Spin()
+anim = ico.anim.Spin() + ico.anim.Breathe()
 icon = ico.Icon(
     # The ':' here denotes a directory and provides cross platform support.
     'spinners:simple',  
