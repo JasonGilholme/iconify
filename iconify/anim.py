@@ -61,6 +61,13 @@ class BaseAnimation(QtCore.QObject):
         self._frame = self._minFrame
         self._active = False
 
+    def __add__(self, other):
+        if isinstance(other, BaseAnimation):
+            concatAnim = ConcatAnim()
+            concatAnim.setAnimations((self, other))
+            return concatAnim
+        raise ValueError("Unsupported operation!")
+
     def transform(self, rect):
         # type: (QtCore.QRect) -> QtGui.QTransform
         """
@@ -210,51 +217,84 @@ class SingleShotSpin(SingleShotMixin, Spin):
     """
 
 
-#
-# def parametricEase(t):
-#     sqt = t * t
-#     return sqt / (2.0 * (sqt - t) + 1.0)
-#
-#
-# class Breathe(BaseAnimation):
-#
-#     _maxFrame = 30
-#
-#     keyframes = (
-#         (0, 0.65),
-#         (25, 0.9),
-#         (60, 0.85),
-#         (100, 0.65),
-#     )
-#
-#     def transform(self, size):
-#
-#         currFrame = self.frame()
-#         prevKey = None
-#         nextKey = None
-#         scale = None
-#
-#         for frame, value in keyFrames:
-#             if frame == currFrame:
-#                 scale = value
-#                 break
-#
-#
-#
-#
-#         t = float(self._frame) / self._maxFrame
-#         m = parametricEase(t)
-#
-#         scale = 0.7 + (0.2 * m)
-#
-#         print(scale)
-#
-#         halfSize = size / 2
-#
-#         xfm = QtGui.QTransform()
-#         xfm = xfm.translate(halfSize.width(), halfSize.height())
-#
-#         xfm = xfm.scale(scale, scale)
-#         xfm = xfm.translate(-halfSize.height(), -halfSize.width())
-#
-#         return xfm
+class Breathe(BaseAnimation):
+
+    _maxFrame = 100
+
+    @staticmethod
+    def parametricEase(t):
+        sqt = t * t
+        return sqt / (2.0 * (sqt - t) + 1.0)
+
+    def transform(self, size):
+        halfWay = self._maxFrame / 2
+
+        if self._frame > halfWay:
+            t = float(self._frame - halfWay) / halfWay
+            m = self.parametricEase(t)
+            scale = 0.9 - (0.2 * m)
+
+        else:
+            t = float(self._frame) / halfWay
+            m = self.parametricEase(t)
+            scale = 0.7 + (0.2 * m)
+
+        halfSize = size / 2
+
+        xfm = QtGui.QTransform()
+        xfm = xfm.translate(halfSize.width(), halfSize.height())
+
+        xfm = xfm.scale(scale, scale)
+        xfm = xfm.translate(-halfSize.height(), -halfSize.width())
+
+        return xfm
+
+
+class ConcatAnim(BaseAnimation):
+
+    _maxFrame = 100000
+
+    def __init__(self, parent=None):
+        super(ConcatAnim, self).__init__(parent=parent)
+        self._anims = []  # type: List[BaseAnimation]
+
+    def setAnimations(self, anims):
+        self._anims = anims
+
+    def transform(self, rect):
+        # type: (QtCore.QRect) -> QtGui.QTransform
+        xfm = QtGui.QTransform()
+
+        for anim in self._anims:
+            xfm = anim.transform(rect) * xfm
+
+        return xfm
+
+    def start(self):
+        # type: () -> Non
+        for anim in self._anims:
+            anim.start()
+        GlobalTick.instance().timeout.connect(self._tick)
+        self._active = True
+
+    def stop(self):
+        # type: () -> None
+        for anim in self._anims:
+            anim.stop()
+        self._frame = self._minFrame
+        GlobalTick.instance().timeout.disconnect(self._tick)
+        self._active = False
+
+    def pause(self):
+        # type: () -> None
+        for anim in self._anims:
+            anim.pause()
+        GlobalTick.instance().timeout.disconnect(self._tick)
+        self._active = False
+
+    def toggle(self):
+        # type: () -> None
+        if self.active():
+            self.pause()
+        else:
+            self.start()

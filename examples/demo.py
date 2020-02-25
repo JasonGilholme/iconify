@@ -42,11 +42,12 @@ spinnerTwoSvg = "spinners:colored"
 deleteSvg = "delete"
 
 clockwiseSpinningAnim = ico.anim.Spin(direction=ico.anim.Spin.Directions.CLOCKWISE)
-antiClockwiseSpinningAnim = ico.anim.SingleShotSpin(direction=ico.anim.Spin.Directions.ANTI_CLOCKWISE)
+antiClockwiseSpinningAnim = ico.anim.Spin() + ico.anim.Breathe()
 
-spinnerIcon = ico.Icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=antiClockwiseSpinningAnim)
+
+spinnerIcon = ico.Icon(spinnerSvg, color=QtGui.QColor.fromHsv(65, 200, 200), anim=clockwiseSpinningAnim)
 spinnerIconTwo = ico.Icon(spinnerTwoSvg, anim=clockwiseSpinningAnim)
-spinnerIconTwoAlt = ico.Icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=clockwiseSpinningAnim)
+spinnerIconTwoAlt = ico.Icon(spinnerTwoSvg, color=QtGui.QColor.fromHsv(300, 150, 200), anim=antiClockwiseSpinningAnim)
 deleteIcon = ico.Icon(deleteSvg, color=QtGui.QColor.fromHsv(5, 200, 200))
 
 buttonOne.setIcon(deleteIcon)
