@@ -2,11 +2,7 @@
 A browser for exploring the available images and possible options.
 """
 
-import os
 import sys
-
-os.environ["ICONIFY_QTLIB"] = "PySide2"
-os.environ["ICONIFY_PATH"] = os.path.dirname(__file__) + "/../examples/icons"
 
 import iconify as ico
 from iconify.qt import QtCore, QtGui, QtWidgets

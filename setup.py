@@ -11,6 +11,9 @@ setup(
     description='',
     packages=find_packages(),
     entry_points={
-        'console_scripts': ['iconify-browser=iconify.browser:run'],
+        'console_scripts': [
+            'iconify-browser=iconify.browser:run',
+            'iconify-fetch-fontawesome=iconify.fetch:fontAwesome',
+        ],
     }
 )
