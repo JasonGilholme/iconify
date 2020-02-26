@@ -4,11 +4,10 @@ Image location support
 
 import fnmatch
 import os
-import tempfile
 
 from kids.cache import cache
 
-_DEFAULT_ICON_DIR = os.path.join(tempfile.gettempdir(), 'iconify')
+_DEFAULT_ICON_DIR = os.path.expanduser('~/.iconify')
 _ICON_PATH = os.environ.get('ICONIFY_PATH', _DEFAULT_ICON_DIR).split(os.pathsep)
 
 

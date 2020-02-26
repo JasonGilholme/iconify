@@ -5,21 +5,29 @@
 Iconify provides a way of creating `QIcon`'s and `QPixmaps`'s from svg files with
 additional hooks for overriding the color and providing animation.
 
-## Installation
+## Quickstart
 
-You can install iconify from pip using the following command:
+To get started with iconify, use the following commands:
 
 ```shell script
+# Install iconify
 pip install iconify
+
+# Fetch the font awesome icon library
+iconify-fetch-fontawesome
+
+# Start the icon browser to find the icon you want
+iconify-browser
 ```
 
-To install common icon sets, use the `fetch` module. For example, to fetch
-the FontAwesome icons use the following code:
+Once you have the icon browser open, you'll be able to copy the name of the icon
+you want and then dive into python:
 
 ```python
 import iconify as ico
 
-ico.fetch.fontAwesome()
+icon = ico.Icon('fa:brands:github')
+myQtButton.setIcon(icon)
 ```
 
 ## Configuration
