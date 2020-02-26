@@ -13,7 +13,9 @@ setup(
     entry_points={
         'console_scripts': [
             'iconify-browser=iconify.browser:run',
-            'iconify-fetch-fontawesome=iconify.fetch:fontAwesome',
+            'iconify-fetch=iconify.fetch:fetch',
+            'iconify-fetch-fa=iconify.fetch:fontAwesome',
+            'iconify-fetch-mdi=iconify.fetch:materialDesign',
         ],
     }
 )

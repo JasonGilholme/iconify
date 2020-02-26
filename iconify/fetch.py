@@ -20,11 +20,30 @@ import iconify as ico
 
 
 _FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/download/{0}/fontawesome-free-{0}-desktop.zip"
+_MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/archive/v{0}.zip"
 
 
 def _downloadFile(url):
     response = urlopen(url)
     return io.BytesIO(response.read())
+
+
+def _getInstallLocation(suffix):
+    iconPath = ico.path._ICON_PATH
+    if not iconPath:
+        raise EnvironmentError(
+            "Please set the ICONIFY_PATH environment variable or provide the 'installLocation' argument..."
+        )
+
+    return os.path.join(iconPath[0], suffix)
+
+
+def fetch():
+    """
+    Fetch all the available icon sets.
+    """
+    fontAwesome()
+    materialDesign()
 
 
 def fontAwesome(version=None, url=None, installLocation=None):
@@ -47,13 +66,7 @@ def fontAwesome(version=None, url=None, installLocation=None):
     installLocation : Optional[str]
     """
     if installLocation is None:
-        iconPath = ico.path._ICON_PATH
-        if not iconPath:
-            raise EnvironmentError(
-                "Please set the ICONIFY_PATH environment variable or provide the 'installLocation' argument..."
-            )
-
-        installLocation = os.path.join(iconPath[0], 'fa')
+        installLocation = _getInstallLocation('fa')
 
     if not os.path.isdir(installLocation):
         os.makedirs(installLocation)
@@ -81,4 +94,37 @@ def fontAwesome(version=None, url=None, installLocation=None):
         filename, ext = os.path.splitext(os.path.basename(url))
 
         source = os.path.join(tmpdir, filename, 'svgs')
+        distutils.dir_util.copy_tree(source, installLocation)
+
+
+def materialDesign(version=None, installLocation=None):
+    if installLocation is None:
+        installLocation = _getInstallLocation('mdi')
+
+    if not os.path.isdir(installLocation):
+        os.makedirs(installLocation)
+
+    if version is None:
+        version = "4.9.95"
+
+    url = _MATERIAL_DESIGN_URL.format(version)
+
+    print('Downloading file: {}'.format(url))
+    if os.path.isfile(url):
+        zipFile = url
+    else:
+        zipFile = _downloadFile(url)
+
+    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
+
+    if os.path.isdir(tmpdir):
+        distutils.dir_util.remove_tree(tmpdir)
+
+    print('Extracting to: {}'.format(installLocation))
+    with zipfile.ZipFile(zipFile) as zipData:
+        zipData.extractall(tmpdir)
+
+        filename = 'MaterialDesign-SVG-{}'.format(version)
+
+        source = os.path.join(tmpdir, filename, 'svg')
         distutils.dir_util.copy_tree(source, installLocation)

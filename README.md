@@ -13,8 +13,8 @@ To get started with iconify, use the following commands:
 # Install iconify
 pip install iconify
 
-# Fetch the font awesome icon library
-iconify-fetch-fontawesome
+# Fetch the icon libraries - Font Awesome, Material Design etc.
+iconify-fetch
 
 # Start the icon browser to find the icon you want
 iconify-browser
