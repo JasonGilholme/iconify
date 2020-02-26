@@ -16,6 +16,7 @@ setup(
             'iconify-fetch=iconify.fetch:fetch',
             'iconify-fetch-fa=iconify.fetch:fontAwesome',
             'iconify-fetch-mdi=iconify.fetch:materialDesign',
+            'iconify-fetch-ei=iconify.fetch:elusiveIcons',
         ],
     }
 )

@@ -21,6 +21,7 @@ import iconify as ico
 
 _FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/download/{0}/fontawesome-free-{0}-desktop.zip"
 _MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/archive/v{0}.zip"
+_ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/archive/master.zip"
 
 
 def _downloadFile(url):
@@ -44,6 +45,7 @@ def fetch():
     """
     fontAwesome()
     materialDesign()
+    elusiveIcons()
 
 
 def fontAwesome(version=None, url=None, installLocation=None):
@@ -127,4 +129,29 @@ def materialDesign(version=None, installLocation=None):
         filename = 'MaterialDesign-SVG-{}'.format(version)
 
         source = os.path.join(tmpdir, filename, 'svg')
+        distutils.dir_util.copy_tree(source, installLocation)
+
+
+def elusiveIcons(installLocation=None):
+    if installLocation is None:
+        installLocation = _getInstallLocation('ei')
+
+    if not os.path.isdir(installLocation):
+        os.makedirs(installLocation)
+
+    url = _ELUSIVE_ICONS_URL
+
+    print('Downloading file: {}'.format(url))
+    zipFile = _downloadFile(url)
+
+    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
+
+    if os.path.isdir(tmpdir):
+        distutils.dir_util.remove_tree(tmpdir)
+
+    print('Extracting to: {}'.format(installLocation))
+    with zipfile.ZipFile(zipFile) as zipData:
+        zipData.extractall(tmpdir)
+
+        source = os.path.join(tmpdir, 'elusive-icons-master/dev/icons-svg')
         distutils.dir_util.copy_tree(source, installLocation)
