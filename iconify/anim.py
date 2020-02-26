@@ -298,3 +298,8 @@ class ConcatAnim(BaseAnimation):
             self.pause()
         else:
             self.start()
+
+    def forceTick(self):
+        for anim in self._anims:
+            anim.forceTick()
+        super(ConcatAnim, self).forceTick()

@@ -13,15 +13,13 @@ You can install iconify from pip using the following command:
 pip install iconify
 ```
 
-To install common icon libraries, use the `fetch` module. For example, to fetch
-the font awesome icons use the following code:
+To install common icon sets, use the `fetch` module. For example, to fetch
+the FontAwesome icons use the following code:
 
 ```python
 import iconify as ico
 
-version = '5.12.1'
-installLocation = '/path/to/install/location'
-ico.fetch.fontAwesome(version, installLocation)
+ico.fetch.fontAwesome()
 ```
 
 ## Configuration
@@ -74,7 +72,7 @@ For animation, instantiate an animation object and pass it in via the `anim` kwa
 ```python
 import iconify as ico
 
-anim = ico.anim.Spin() + ico.anim.Breathe()
+anim = ico.anim.Spin()
 icon = ico.Icon(
     # The ':' here denotes a directory and provides cross platform support.
     'spinners:simple',  
@@ -99,7 +97,8 @@ an event happens e.g. loading something:
 ```python
 import iconify as ico
 
-loadingAnim = ico.anim.Spin()
+# Animations can be added together using the + operator.
+loadingAnim = ico.anim.Spin() + ico.anim.Breathe()
 
 # Instantiate two icons with the same animation
 simpleIcon = ico.Icon(
