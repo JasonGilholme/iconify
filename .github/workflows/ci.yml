@@ -9,19 +9,15 @@ on:
     - master
 
 jobs:
-  .testTemplate: &test_template
+  Linux:
     name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
+    runs-on: ubuntu-18.04
     env:
       ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
     strategy:
       matrix:
         ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
         PYTHHON_VERSION: ['py2', 'py3']
-
-  Linux:
-    <<: *test_template
-    name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
-    runs-on: ubuntu-18.04
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1.2.0
@@ -31,3 +27,5 @@ jobs:
           sudo apt-get install libegl1-mesa python-tox
       - name: Run Tox
         run: xvfb-run tox -e ${{ matrix.PYTHON_VERSION }}
+
+
