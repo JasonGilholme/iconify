@@ -26,9 +26,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install libegl1-mesa
       - name: Install Dependencies
-        shell: bash -l {0}
-        run: pip3 install tox
+        run: pip install tox
       - name: Run tests
-        shell: bash -l {0}
-        run: |
-          tox
+        run: tox
