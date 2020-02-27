@@ -4,7 +4,6 @@ from iconify.qt import QtCore, QtGui, QtWidgets
 
 
 def test_icon(qtbot, validIconPath):
-
     anim = iconify.anim.Spin()
     icon = iconify.Icon(
         'delete',

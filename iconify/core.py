@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from typing import *
     from iconify.anim import BaseAnimation
     from iconify.qt import QtWidgets
-    PixmapCacheKey = Tuple[str, QtCore.QSize, str, int]
+    PixmapCacheKey = Tuple[Optional[str], QtCore.QSize, str, int]
 
 _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 

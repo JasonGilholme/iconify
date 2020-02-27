@@ -8,7 +8,10 @@ import iconify.qt
 
 
 ANIM_CLASSES = [
-    m for _, m in inspect.getmembers(iconify.anim) if isinstance(m, type) and iconify.anim.BaseAnimation in m.__bases__
+    m for _, m in inspect.getmembers(iconify.anim) if
+    isinstance(m, type) and
+    iconify.anim.BaseAnimation in m.__bases__ and
+    not m.__name__.startswith('_')
 ]
 
 
@@ -39,3 +42,18 @@ def test_animStartStop():
     currFrame = anim.frame()
 
     assert currFrame > initFrame
+
+
+def test_concatAnim():
+    anim = iconify.anim.Spin() + iconify.anim.Breathe()
+
+    size = iconify.qt.QtCore.QSize(64, 64)
+
+    initXfm = anim.transform(size)
+
+    for i in range(5):
+        anim.forceTick()
+
+    nextXfm = anim.transform(size)
+
+    assert initXfm != nextXfm

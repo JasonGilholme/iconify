@@ -4,8 +4,12 @@ Image location support
 
 import fnmatch
 import os
+from typing import TYPE_CHECKING
 
 from kids.cache import cache
+
+if TYPE_CHECKING:
+    from typing import *
 
 _DEFAULT_ICON_DIR = os.path.expanduser('~/.iconify')
 _ICON_PATH = os.environ.get('ICONIFY_PATH', _DEFAULT_ICON_DIR).split(os.pathsep)
@@ -65,7 +69,8 @@ def findIcon(iconPath):
 
 
 def listIcons():
-    matches = []
+    # type: () -> List[str]
+    matches = []  # type: List[str]
     for dir_ in _ICON_PATH:
         for root, dirnames, filenames in os.walk(dir_):
             for filename in fnmatch.filter(filenames, '*.svg'):
@@ -73,5 +78,5 @@ def listIcons():
                 filePath = filePath.replace(dir_, "")
                 filePath, _ = os.path.splitext(filePath)
                 filePath = filePath.lstrip('/').replace("/", ":")
-                matches.append(filePath)
+                matches.append(str(filePath))
     return matches

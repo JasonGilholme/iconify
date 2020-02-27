@@ -3,10 +3,13 @@ A browser for exploring the available images and possible options.
 """
 
 import sys
+from typing import TYPE_CHECKING
 
 import iconify as ico
 from iconify.qt import QtCore, QtGui, QtWidgets
 
+if TYPE_CHECKING:
+    from typing import *
 
 VIEW_COLUMNS = 6
 AUTO_SEARCH_TIMEOUT = 500
@@ -14,13 +17,13 @@ AUTO_SEARCH_TIMEOUT = 500
 
 class Browser(QtWidgets.QMainWindow):
 
-    def __init__(self):
-        super(Browser, self).__init__()
+    def __init__(self, parent=None):
+        # type: (Optional[QtWidgets.QWidget]) -> None
+        super(Browser, self).__init__(parent=parent)
         self.setMinimumSize(400, 300)
         self.setWindowTitle('Iconify Browser')
 
         iconNames = ico.path.listIcons()
-        # iconNames = ('delete', 'github', 'duotone', 'spinners:dots', 'account-minus', 'color', 'playstation')
 
         self._filterTimer = QtCore.QTimer(self)
         self._filterTimer.setSingleShot(True)
@@ -82,6 +85,7 @@ class Browser(QtWidgets.QMainWindow):
         self.setGeometry(geo)
 
     def _updateFilter(self):
+        # type: () -> None
         """
         Update the string used for filtering in the proxy model with the
         current text from the line edit.
@@ -95,6 +99,7 @@ class Browser(QtWidgets.QMainWindow):
         self._proxyModel.setFilterRegExp(reString)
 
     def _triggerDelayedUpdate(self):
+        # type: () -> None
         """
         Reset the timer used for committing the search term to the proxy model.
         """
@@ -102,6 +107,7 @@ class Browser(QtWidgets.QMainWindow):
         self._filterTimer.start()
 
     def _triggerImmediateUpdate(self):
+        # type: () -> None
         """
         Stop the timer used for committing the search term and update the
         proxy model immediately.
@@ -110,6 +116,7 @@ class Browser(QtWidgets.QMainWindow):
         self._updateFilter()
 
     def _copyIconText(self):
+        # type: () -> None
         """
         Copy the name of the currently selected icon to the clipboard.
         """
@@ -128,10 +135,12 @@ class View(QtWidgets.QListView):
     """
 
     def __init__(self, parent=None):
+        # type: (Optional[QtWidgets.QWidget]) -> None
         super(View, self).__init__(parent)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 
     def resizeEvent(self, event):
+        # type: (QtCore.QEvent) -> bool
         """
         Re-implemented to re-calculate the grid size to provide scaling icons
 
@@ -155,9 +164,11 @@ class View(QtWidgets.QListView):
 class Model(QtCore.QStringListModel):
 
     def flags(self, index):
+        # type: (QtCore.QModelIndex) -> QtCore.QItemFlags
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-    def data(self, index, role):
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        # type: (QtCore.QModelIndex, QtCore.Qt.ItemRole) -> Any
         """
         Re-implemented to return the icon for the current index.
 
@@ -177,6 +188,7 @@ class Model(QtCore.QStringListModel):
 
 
 def run():
+    # type: () -> NoReturn
     """
     Start the Iconify Browser and block until the process exits.
     """

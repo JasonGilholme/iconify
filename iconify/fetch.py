@@ -8,6 +8,9 @@ import io
 import os
 import tempfile
 import zipfile
+from typing import TYPE_CHECKING
+
+import iconify as ico
 
 try:
     # Python 2
@@ -16,30 +19,16 @@ except ImportError:
     # Python 3
     from urllib.request import urlopen
 
-import iconify as ico
-
+if TYPE_CHECKING:
+    from typing import *
 
 _FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/download/{0}/fontawesome-free-{0}-desktop.zip"
 _MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/archive/v{0}.zip"
 _ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/archive/master.zip"
 
 
-def _downloadFile(url):
-    response = urlopen(url)
-    return io.BytesIO(response.read())
-
-
-def _getInstallLocation(suffix):
-    iconPath = ico.path._ICON_PATH
-    if not iconPath:
-        raise EnvironmentError(
-            "Please set the ICONIFY_PATH environment variable or provide the 'installLocation' argument..."
-        )
-
-    return os.path.join(iconPath[0], suffix)
-
-
 def fetch():
+    # type: () -> None
     """
     Fetch all the available icon sets.
     """
@@ -48,7 +37,8 @@ def fetch():
     elusiveIcons()
 
 
-def fontAwesome(version=None, url=None, installLocation=None):
+def fontAwesome(version=None, urlOrFile=None, installLocation=None):
+    # type: (Optional[str], Optional[str], Optional[str]) -> None
     """
     Download the FontAwesome images for iconify.
 
@@ -67,22 +57,55 @@ def fontAwesome(version=None, url=None, installLocation=None):
     url : Optional[str]
     installLocation : Optional[str]
     """
-    if installLocation is None:
-        installLocation = _getInstallLocation('fa')
+    version = version or '5.12.1'
+    installLocation = installLocation or _getInstallLocation('fa')
+    urlOrFile = urlOrFile or _FONT_AWESOME_URL.format(version)
 
+    filename, ext = os.path.splitext(os.path.basename(urlOrFile))
+    zipFilePath = os.path.join(filename, 'svgs')
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath=zipFilePath,
+    )
+
+
+def materialDesign(version=None, urlOrFile=None, installLocation=None):
+    # type: (Optional[str], Optional[str], Optional[str]) -> None
+    version = version or '4.9.95'
+    installLocation = installLocation or _getInstallLocation('mdi')
+    urlOrFile = urlOrFile or _MATERIAL_DESIGN_URL.format(version)
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='MaterialDesign-SVG-{}/svg'.format(version),
+    )
+
+
+def elusiveIcons(urlOrFile=None, installLocation=None):
+    # type: (Optional[str], Optional[str]) -> None
+    installLocation = installLocation or _getInstallLocation('ei')
+    urlOrFile = urlOrFile or _ELUSIVE_ICONS_URL
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='elusive-icons-master/dev/icons-svg',
+    )
+
+
+def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):
+    # type: (str, str, Optional[str]) -> None
     if not os.path.isdir(installLocation):
         os.makedirs(installLocation)
 
-    if url is None:
-        if version is None:
-            version = '5.12.1'
-        url = _FONT_AWESOME_URL.format(version)
-
-    print('Downloading file: {}'.format(url))
-    if os.path.isfile(url):
-        zipFile = url
+    if os.path.isfile(urlOrFilePath):
+        zipFile = urlOrFilePath  # type: Union[str, io.BytesIO]
     else:
-        zipFile = _downloadFile(url)
+        print('Downloading file: {}'.format(urlOrFilePath))
+        zipFile = _downloadFile(urlOrFilePath)
 
     tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
 
@@ -93,65 +116,26 @@ def fontAwesome(version=None, url=None, installLocation=None):
     with zipfile.ZipFile(zipFile) as zipData:
         zipData.extractall(tmpdir)
 
-        filename, ext = os.path.splitext(os.path.basename(url))
+        if zipFilePath:
+            source = os.path.join(tmpdir, zipFilePath)
+        else:
+            source = tmpdir
 
-        source = os.path.join(tmpdir, filename, 'svgs')
         distutils.dir_util.copy_tree(source, installLocation)
 
 
-def materialDesign(version=None, installLocation=None):
-    if installLocation is None:
-        installLocation = _getInstallLocation('mdi')
-
-    if not os.path.isdir(installLocation):
-        os.makedirs(installLocation)
-
-    if version is None:
-        version = "4.9.95"
-
-    url = _MATERIAL_DESIGN_URL.format(version)
-
-    print('Downloading file: {}'.format(url))
-    if os.path.isfile(url):
-        zipFile = url
-    else:
-        zipFile = _downloadFile(url)
-
-    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
-
-    if os.path.isdir(tmpdir):
-        distutils.dir_util.remove_tree(tmpdir)
-
-    print('Extracting to: {}'.format(installLocation))
-    with zipfile.ZipFile(zipFile) as zipData:
-        zipData.extractall(tmpdir)
-
-        filename = 'MaterialDesign-SVG-{}'.format(version)
-
-        source = os.path.join(tmpdir, filename, 'svg')
-        distutils.dir_util.copy_tree(source, installLocation)
+def _downloadFile(url):
+    # type: (str) -> io.BytesIO
+    response = urlopen(url)
+    return io.BytesIO(response.read())
 
 
-def elusiveIcons(installLocation=None):
-    if installLocation is None:
-        installLocation = _getInstallLocation('ei')
+def _getInstallLocation(suffix):
+    # type: (str) -> str
+    iconPath = ico.path._ICON_PATH
+    if not iconPath:
+        raise EnvironmentError(
+            "Please set the ICONIFY_PATH environment variable or provide the 'installLocation' argument..."
+        )
 
-    if not os.path.isdir(installLocation):
-        os.makedirs(installLocation)
-
-    url = _ELUSIVE_ICONS_URL
-
-    print('Downloading file: {}'.format(url))
-    zipFile = _downloadFile(url)
-
-    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
-
-    if os.path.isdir(tmpdir):
-        distutils.dir_util.remove_tree(tmpdir)
-
-    print('Extracting to: {}'.format(installLocation))
-    with zipfile.ZipFile(zipFile) as zipData:
-        zipData.extractall(tmpdir)
-
-        source = os.path.join(tmpdir, 'elusive-icons-master/dev/icons-svg')
-        distutils.dir_util.copy_tree(source, installLocation)
+    return os.path.join(iconPath[0], suffix)

@@ -62,8 +62,9 @@ class BaseAnimation(QtCore.QObject):
         self._active = False
 
     def __add__(self, other):
+        # type: (object) -> BaseAnimation
         if isinstance(other, BaseAnimation):
-            concatAnim = ConcatAnim()
+            concatAnim = _ConcatAnim()
             concatAnim.setAnimations((self, other))
             return concatAnim
         raise ValueError("Unsupported operation!")
@@ -222,21 +223,23 @@ class Breathe(BaseAnimation):
     _maxFrame = 100
 
     @staticmethod
-    def parametricEase(t):
+    def _parametricEase(t):
+        # type: (float) -> float
         sqt = t * t
         return sqt / (2.0 * (sqt - t) + 1.0)
 
     def transform(self, size):
+        # type: (QtCore.QSize) -> QtGui.QTransform
         halfWay = self._maxFrame / 2
 
         if self._frame > halfWay:
             t = float(self._frame - halfWay) / halfWay
-            m = self.parametricEase(t)
+            m = self._parametricEase(t)
             scale = 0.9 - (0.2 * m)
 
         else:
             t = float(self._frame) / halfWay
-            m = self.parametricEase(t)
+            m = self._parametricEase(t)
             scale = 0.7 + (0.2 * m)
 
         halfSize = size / 2
@@ -250,16 +253,18 @@ class Breathe(BaseAnimation):
         return xfm
 
 
-class ConcatAnim(BaseAnimation):
+class _ConcatAnim(BaseAnimation):
 
     _maxFrame = 100000
 
     def __init__(self, parent=None):
-        super(ConcatAnim, self).__init__(parent=parent)
-        self._anims = []  # type: List[BaseAnimation]
+        # type: (Optional[QtGui.QObject]) -> None
+        super(_ConcatAnim, self).__init__(parent=parent)
+        self._anims = ()  # type: Tuple[BaseAnimation, ...]
 
     def setAnimations(self, anims):
-        self._anims = anims
+        # type: (Sequence[BaseAnimation]) -> None
+        self._anims = tuple(anims)
 
     def transform(self, rect):
         # type: (QtCore.QRect) -> QtGui.QTransform
@@ -271,7 +276,7 @@ class ConcatAnim(BaseAnimation):
         return xfm
 
     def start(self):
-        # type: () -> Non
+        # type: () -> None
         for anim in self._anims:
             anim.start()
         GlobalTick.instance().timeout.connect(self._tick)
@@ -300,6 +305,7 @@ class ConcatAnim(BaseAnimation):
             self.start()
 
     def forceTick(self):
+        # type: () -> None
         for anim in self._anims:
             anim.forceTick()
-        super(ConcatAnim, self).forceTick()
+        super(_ConcatAnim, self).forceTick()
