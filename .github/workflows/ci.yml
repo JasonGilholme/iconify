@@ -20,9 +20,9 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1.2.0
-      - name: Install System Packages
+      - name: Install Dependencies
         run: | 
           sudo apt-get update
           sudo apt-get install libegl1-mesa python-tox
-      - name: Run tests
-        run: tox
+      - name: Run Tox
+        run: xvfb-run tox
