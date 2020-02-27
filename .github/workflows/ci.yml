@@ -11,7 +11,7 @@ on:
 jobs:
   Linux:
     name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
       ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
     strategy:
@@ -29,3 +29,19 @@ jobs:
         run: xvfb-run tox -e ${{ matrix.PYTHON_VERSION }}
 
 
+  OSX:
+    name: OSX - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
+    runs-on: macos-latest
+    env:
+      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
+    strategy:
+      matrix:
+        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
+        PYTHON_VERSION: ['py2', 'py3']
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1.2.0
+      - name: Install Dependencies
+        run: pip install tox
+      - name: Run Tox
+        run: tox -e ${{ matrix.PYTHON_VERSION }}
