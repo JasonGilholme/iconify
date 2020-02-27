@@ -11,7 +11,7 @@ on:
 jobs:
   Linux:
     name: Linux - ${{ matrix.ICONIFY_QTLIB }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     env:
       ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
     strategy:
@@ -31,4 +31,4 @@ jobs:
       - name: Run tests
         shell: bash -l {0}
         run: |
-          xvfb-run --auto-servernum tox
+          tox
