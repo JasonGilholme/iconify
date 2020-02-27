@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  Linux:
+    name: Linux - ${{ matrix.ICONIFY_QTLIB }}
+    runs-on: ubuntu-latest
+    env:
+      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
+    strategy:
+      fail-fast: false 
+      matrix:
+        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1.2.0
+      - name: Install System Packages
+        run: | 
+          sudo apt-get update
+          sudo apt-get install libegl1-mesa
+      - name: Install Dependencies
+        shell: bash -l {0}
+        run: pip install tox
+      - name: Run tests
+        shell: bash -l {0}
+        run: |
+          xvfb-run --auto-servernum tox
