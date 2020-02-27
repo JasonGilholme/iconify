@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
-        PYTHHON_VERSION: ['py2', 'py3']
+        PYTHON_VERSION: ['py2', 'py3']
     steps:
       - name: Checkout branch
         uses: actions/checkout@v1.2.0
