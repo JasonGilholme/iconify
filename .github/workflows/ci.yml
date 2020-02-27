@@ -15,7 +15,6 @@ jobs:
     env:
       ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
     strategy:
-      fail-fast: false 
       matrix:
         ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
     steps:
@@ -24,8 +23,6 @@ jobs:
       - name: Install System Packages
         run: | 
           sudo apt-get update
-          sudo apt-get install libegl1-mesa
-      - name: Install Dependencies
-        run: pip install tox
+          sudo apt-get install libegl1-mesa python-tox
       - name: Run tests
         run: tox
