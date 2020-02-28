@@ -106,7 +106,10 @@ class BaseAnimation(QtCore.QObject):
         """
         Stop the animation and maintain the current frame
         """
-        GlobalTick.instance().timeout.disconnect(self._tick)
+        try:
+            GlobalTick.instance().timeout.disconnect(self._tick)
+        except RuntimeError:
+            pass
         self._active = False
 
     def toggle(self):
