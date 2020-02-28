@@ -10,7 +10,8 @@ import iconify.qt
 ANIM_CLASSES = [
     m for _, m in inspect.getmembers(iconify.anim) if
     isinstance(m, type) and
-    iconify.anim.BaseAnimation in m.__bases__ and
+    issubclass(m, iconify.anim.BaseAnimation) and
+    m is not iconify.anim.BaseAnimation and
     not m.__name__.startswith('_')
 ]
 
@@ -23,7 +24,7 @@ def test_animSmokeTests(animCls):
 
     initXfm = anim.transform(size)
 
-    for i in range(5):
+    for i in range(anim._maxFrame + 5):
         anim.forceTick()
 
     nextXfm = anim.transform(size)
@@ -51,9 +52,27 @@ def test_concatAnim():
 
     initXfm = anim.transform(size)
 
-    for i in range(5):
+    for i in range(anim._maxFrame + 5):
         anim.forceTick()
 
     nextXfm = anim.transform(size)
 
     assert initXfm != nextXfm
+    assert anim.active() is False
+
+    frameA = anim.frame()
+    anim.start()
+    assert anim.active() is True
+    anim.stop()
+    frameB = anim.frame()
+
+    assert frameA != frameB
+    assert anim.active() is False
+
+    anim.toggle()
+    assert anim.active() is True
+    anim.pause()
+    frameC = anim.frame()
+
+    # assert frameB != frameC
+    # assert anim.active() is False

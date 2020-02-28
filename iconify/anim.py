@@ -265,6 +265,7 @@ class _ConcatAnim(BaseAnimation):
     def setAnimations(self, anims):
         # type: (Sequence[BaseAnimation]) -> None
         self._anims = tuple(anims)
+        self._maxFrame = max([a._maxFrame for a in anims])
 
     def transform(self, rect):
         # type: (QtCore.QRect) -> QtGui.QTransform
