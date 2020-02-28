@@ -9,55 +9,55 @@ on:
     - master
 
 jobs:
-  Lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v1.2.0
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install python-tox
-      - name: Run Tox
-        run: tox -e fmt -e mypy
-
-  Linux:
-    name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
-    runs-on: ubuntu-latest
-    env:
-      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
-    strategy:
-      matrix:
-        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
-        PYTHON_VERSION: ['py2', 'py3']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v1.2.0
-      - name: Install Dependencies
-        run: | 
-          sudo apt-get update
-          sudo apt-get install libegl1-mesa python-tox
-      - name: Run Tox
-        run: tox -e ${{ matrix.PYTHON_VERSION }}
-
-
-  OSX:
-    name: MacOS - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
-    runs-on: macos-latest
-    env:
-      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
-    strategy:
-      matrix:
-        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
-        PYTHON_VERSION: ['py2', 'py3']
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v1.2.0
-      - name: Install Dependencies
-        run: pip install tox
-      - name: Run Tox
-        run: tox -e ${{ matrix.PYTHON_VERSION }}
+#  Lint:
+#    name: Lint
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout branch
+#        uses: actions/checkout@v1.2.0
+#      - name: Install Dependencies
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install python-tox
+#      - name: Run Tox
+#        run: tox -e fmt -e mypy
+#
+#  Linux:
+#    name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
+#    runs-on: ubuntu-latest
+#    env:
+#      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
+#    strategy:
+#      matrix:
+#        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
+#        PYTHON_VERSION: ['py2', 'py3']
+#    steps:
+#      - name: Checkout branch
+#        uses: actions/checkout@v1.2.0
+#      - name: Install Dependencies
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install libegl1-mesa python-tox
+#      - name: Run Tox
+#        run: tox -e ${{ matrix.PYTHON_VERSION }}
+#
+#
+#  OSX:
+#    name: MacOS - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
+#    runs-on: macos-latest
+#    env:
+#      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
+#    strategy:
+#      matrix:
+#        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
+#        PYTHON_VERSION: ['py2', 'py3']
+#    steps:
+#      - name: Checkout branch
+#        uses: actions/checkout@v1.2.0
+#      - name: Install Dependencies
+#        run: pip install tox
+#      - name: Run Tox
+#        run: tox -e ${{ matrix.PYTHON_VERSION }}
 
   Windows:
     name: Windows - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
@@ -65,6 +65,7 @@ jobs:
     env:
       ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
     strategy:
+      fail-fast: False
       matrix:
         ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
         PYTHON_VERSION: ['py2', 'py3']
