@@ -20,17 +20,9 @@ else:
 
 
 _IMPORT_ERROR_MESSAGE = \
-    "Unable to import {0}.{1}! Please set the 'ICONIFY_QTLIB' env var " \
-    "to the location of the Qt binding you would like to use."
+    "Unable to import required Qt libraries from {0}! Please set the " \
+    "'ICONIFY_QTLIB' env var to the location of a Qt5 compliant python " \
+    "binding you would like to use."
 
-if QtCore is None:
-    raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib, 'QtCore'))
-
-if QtGui is None:
-    raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib, 'QtGui'))
-
-if QtSvg is None:
-    raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib, 'QtSvg'))
-
-if QtWidgets is None:
-    raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib, 'QtWidgets'))
+if None in (QtCore, QtGui, QtSvg, QtWidgets):
+    raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib))

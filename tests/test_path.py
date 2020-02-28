@@ -25,7 +25,7 @@ def test_addIconDirectory(invalidIconPath):
     with pytest.raises(iconify.path.IconNotFoundError):
         iconify.path.findIcon('delete')
 
-    iconDir = os.path.join(os.path.dirname(__file__), "icons")
+    iconDir = os.path.join(os.path.dirname(__file__), "fixtures", "icons")
     iconify.path.addIconDirectory(iconDir)
 
     iconPath = iconify.path.findIcon('delete')
