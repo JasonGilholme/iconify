@@ -3,11 +3,11 @@ name: prod-release
 on:
   push:
     branches:
-    - invalid
+    - master
 
 jobs:
   deploy:
-    name: Build and upload to PyPi
+    name: Build and upload to Test PyPi
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -22,15 +22,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install setuptools wheel twine
 
-    - name: Build
-      run: python setup.py sdist bdist_wheel
-
-    - name: Echo Env
-      run: export
-
-    - name: Publish - pypi.org
-      if: startsWith(github.event.ref, 'refs/tags')
+    - name: Build & Publish
       env:
         TWINE_USERNAME: '__token__'
         TWINE_PASSWORD: ${{ secrets.pypi_password }}
-      run: twine upload dist/*
+      run: |
+        VERSION=`python version.py`
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
+        git tag v$VERSION
+        git push --tags
