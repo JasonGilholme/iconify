@@ -8,7 +8,7 @@ from typing import Any, NoReturn, Optional
 import iconify as ico
 from iconify.qt import QtCore, QtGui, QtWidgets
 
-VIEW_COLUMNS = 6
+VIEW_COLUMNS = 5
 AUTO_SEARCH_TIMEOUT = 500
 
 
