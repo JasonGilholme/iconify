@@ -1,13 +1,13 @@
-name: release
+name: dev-release
 
 on:
   push:
     branches:
-    - master
+    - develop
 
 jobs:
   deploy:
-    name: Build and upload to PyPi
+    name: Build and upload to Test PyPi
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -33,10 +33,3 @@ jobs:
         TWINE_USERNAME: '__token__'
         TWINE_PASSWORD: ${{ secrets.test_pypi_password }}
       run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-    - name: Publish - pypi.org
-      if: startsWith(github.event.ref, 'refs/tags')
-      env:
-        TWINE_USERNAME: '__token__'
-        TWINE_PASSWORD: ${{ secrets.pypi_password }}
-      run: twine upload dist/*
