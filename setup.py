@@ -14,6 +14,11 @@ if githubEventData is not None:
     import pprint
     pprint.pprint(data)
 
+    import subprocess
+
+    proc = subprocess.Popen('git rev-list --count HEAD', shell=True, stdout=subprocess.PIPE)
+    print(proc.communicate())
+
 
 setup(
     name='iconify',
