@@ -77,6 +77,6 @@ def listIcons():
                 filePath = os.path.join(root, filename)
                 filePath = filePath.replace(dir_, "")
                 filePath, _ = os.path.splitext(filePath)
-                filePath = filePath.lstrip('/').replace("/", ":")
+                filePath = filePath.lstrip(os.sep).replace(os.sep, ":")
                 matches.append(str(filePath))
     return matches

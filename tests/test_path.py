@@ -30,3 +30,10 @@ def test_addIconDirectory(invalidIconPath):
 
     iconPath = iconify.path.findIcon('delete')
     assert os.path.isfile(iconPath)
+
+
+def test_listIcons():
+    for iconName in iconify.path.listIcons():
+        icon = iconify.path.findIcon(iconName)
+        assert icon is not None
+        assert os.path.isfile(icon)
