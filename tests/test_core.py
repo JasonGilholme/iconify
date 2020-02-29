@@ -5,19 +5,24 @@ from iconify.qt import QtCore, QtGui, QtWidgets
 
 def test_icon(qtbot, validIconPath):
     anim = iconify.anim.Spin()
+    color = QtGui.QColor('red')
+
     icon = iconify.Icon(
         'delete',
-        color=QtGui.QColor('red'),
+        color=color,
         anim=anim,
     )
 
+    pixmapGenerator = icon.pixmapGenerator()
+    assert pixmapGenerator.anim() is anim
+    assert pixmapGenerator.color() is color
+
+    assert icon.anim() is anim
+
     button = QtWidgets.QPushButton()
-    button.setIcon(icon)
-    button.clicked.connect(anim.toggle)
+    icon.setAsButtonIcon(button)
 
     button.show()
-
-    qtbot.mouseClick(button, QtCore.Qt.LeftButton)
 
 
 def test_pixmapGenerator(validIconPath):
