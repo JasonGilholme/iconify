@@ -4,15 +4,12 @@ Image location support
 
 import fnmatch
 import os
-from typing import TYPE_CHECKING
+from typing import List
 
 from kids.cache import cache
 
-if TYPE_CHECKING:
-    from typing import *
-
-_DEFAULT_ICON_DIR = os.path.expanduser('~/.iconify')
-_ICON_PATH = os.environ.get('ICONIFY_PATH', _DEFAULT_ICON_DIR).split(os.pathsep)
+_USER_DIR = os.path.expanduser('~/.iconify')
+_ICON_PATH = os.environ.get('ICONIFY_PATH', _USER_DIR).split(os.pathsep)
 
 
 class IconNotFoundError(Exception):

@@ -3,12 +3,9 @@ The animation objects for iconify
 """
 
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import Optional, Sequence, Tuple
 
 from iconify.qt import QtCore, QtGui
-
-if TYPE_CHECKING:
-    from typing import *
 
 
 class GlobalTick(QtCore.QObject):
@@ -174,7 +171,7 @@ class SingleShotMixin(object):
     animation loops once and then stops itself.
     """
 
-    def incrementFrame(self):  # type: ignore[misc]
+    def incrementFrame(self):  # type: ignore[misc]  # noqa: F821
         # type: (BaseAnimation) -> None
         if self._frame == self._maxFrame:
             self._frame = self._minFrame

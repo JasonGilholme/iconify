@@ -8,7 +8,7 @@ import io
 import os
 import tempfile
 import zipfile
-from typing import TYPE_CHECKING
+from typing import Optional, Union
 
 import iconify as ico
 
@@ -19,12 +19,13 @@ except ImportError:
     # Python 3
     from urllib.request import urlopen
 
-if TYPE_CHECKING:
-    from typing import *
 
-_FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/download/{0}/fontawesome-free-{0}-desktop.zip"
-_MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/archive/v{0}.zip"
-_ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/archive/master.zip"
+_FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/" \
+                    "download/{0}/fontawesome-free-{0}-desktop.zip"
+_MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/" \
+                       "archive/v{0}.zip"
+_ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/" \
+                     "archive/master.zip"
 
 
 def fetch():
@@ -135,7 +136,8 @@ def _getInstallLocation(suffix):
     iconPath = ico.path._ICON_PATH
     if not iconPath:
         raise EnvironmentError(
-            "Please set the ICONIFY_PATH environment variable or provide the 'installLocation' argument..."
+            "Please set the ICONIFY_PATH environment variable or "
+            "provide the 'installLocation' argument..."
         )
 
     return os.path.join(iconPath[0], suffix)

@@ -2,13 +2,12 @@
 The primary objects for interfacing with iconify
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, MutableMapping, Optional, Tuple
 
 from iconify.path import findIcon
 from iconify.qt import QtCore, QtGui, QtSvg
 
 if TYPE_CHECKING:
-    from typing import *
     from iconify.anim import BaseAnimation
     from iconify.qt import QtWidgets
     PixmapCacheKey = Tuple[Optional[str], QtCore.QSize, str, int]
@@ -18,15 +17,21 @@ _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
 class Icon(QtGui.QIcon):
     """
-    The Iconify Icon which renders an svg image using the provided color & anim.
+    The Iconify Icon which renders an svg image
+    using the provided color & anim.
     """
 
-    def __new__(cls, path, color=None, anim=None):
-        # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation]) -> QtGui.QIcon
+    def __new__(
+        cls,
+        path,  # type: str
+        color=None,  # type: Optional[QtGui.QColor]
+        anim=None  # type: Optional[BaseAnimation]
+    ):
+        # type: (...) -> QtGui.QIcon
         """
-        This returns a patched QtGui.QIcon object so that the QIcon has convenience
-        functions for finding the animation and pixmap generator, but is also
-        usable with Qt's model view framework.
+        This returns a patched QtGui.QIcon object so that the QIcon has
+        convenience functions for finding the animation and pixmap generator,
+        but is also usable with Qt's model view framework.
 
         Parameters
         ----------
@@ -92,8 +97,14 @@ class PixmapGenerator(QtCore.QObject):
     It's backed by a cache to ensure that redundant rendering does not happen.
     """
 
-    def __init__(self, path=None, color=None, anim=None, parent=None):
-        # type: (str, Optional[QtGui.QColor], Optional[BaseAnimation], Optional[QtCore.QObject]) -> None
+    def __init__(
+        self,
+        path=None,  # type: str
+        color=None,  # type: Optional[QtGui.QColor]
+        anim=None,  # type: Optional[BaseAnimation]
+        parent=None,  # type: Optional[QtCore.QObject]
+    ):
+        # type: (...) -> None
         super(PixmapGenerator, self).__init__(parent=parent)
         self._path = None  # type: Optional[str]
         self._color = None  # type: Optional[QtGui.QColor]
@@ -143,8 +154,8 @@ class PixmapGenerator(QtCore.QObject):
     def pixmap(self, size):
         # type: (QtCore.QSize) -> QtGui.QPixmap
         """
-        Render the svg file, apply the color override and the animation transform
-        and return it as a QPixmap.
+        Render the svg file, apply the color override and the animation
+        transform and return it as a QPixmap.
 
         Parameters
         ----------

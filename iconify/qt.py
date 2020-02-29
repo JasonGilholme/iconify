@@ -7,7 +7,6 @@ import pydoc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import *
     from PySide2 import QtCore, QtGui, QtSvg, QtWidgets
     qtlib = 'PySide2'
 else:

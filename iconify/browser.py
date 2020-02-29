@@ -3,13 +3,10 @@ A browser for exploring the available images and possible options.
 """
 
 import sys
-from typing import TYPE_CHECKING
+from typing import Any, NoReturn, Optional
 
 import iconify as ico
 from iconify.qt import QtCore, QtGui, QtWidgets
-
-if TYPE_CHECKING:
-    from typing import *
 
 VIEW_COLUMNS = 6
 AUTO_SEARCH_TIMEOUT = 500
