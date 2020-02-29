@@ -25,6 +25,9 @@ jobs:
     - name: Build
       run: python setup.py sdist bdist_wheel
 
+    - name: Echo Build Number
+      run: echo $GITHUB_RUN_NUMBER
+
     - name: Publish - test.pypi.org
       env:
         TWINE_USERNAME: '__token__'

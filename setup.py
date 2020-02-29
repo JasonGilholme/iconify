@@ -1,10 +1,12 @@
 
+import os
+
 from setuptools import setup, find_packages
 
 
 setup(
     name='iconify',
-    version='0.0.0.dev',
+    version='0.0.0.{}'.format(os.environ.get('GITHUB_RUN_NUMBER', 'dev')),
     description='An SVG based icon library for Qt',
     long_description="",
     long_description_content_type='text/markdown',
