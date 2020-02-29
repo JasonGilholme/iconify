@@ -1,5 +1,8 @@
 # Iconify
 
+![](https://github.com/jasongilholme/iconify/workflows/linux/badge.svg) ![](https://github.com/jasongilholme/iconify/workflows/macos/badge.svg)
+ ![](https://github.com/jasongilholme/iconify/workflows/windows/badge.svg)
+ 
 ![](coverage.svg)
 
 Iconify provides a way of creating `QIcon`'s and `QPixmaps`'s from svg files with

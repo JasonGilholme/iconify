@@ -1,0 +1,23 @@
+name: lint
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  Lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1.2.0
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install python-tox
+      - name: Run Linters
+        run: tox -e fmt -e mypy

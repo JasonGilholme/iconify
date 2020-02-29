@@ -1,0 +1,30 @@
+name: linux
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  Linux:
+    name: Linux - ${{ matrix.PYTHON_VERSION }} - ${{ matrix.ICONIFY_QTLIB }}
+    runs-on: ubuntu-latest
+    env:
+      ICONIFY_QTLIB: ${{ matrix.ICONIFY_QTLIB }}
+    strategy:
+      fail-fast: False
+      matrix:
+        ICONIFY_QTLIB: ['PySide2', 'Qt', 'qtpy']
+        PYTHON_VERSION: ['py2', 'py3']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1.2.0
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1-mesa python-tox
+      - name: Run Tests
+        run: tox -e ${{ matrix.PYTHON_VERSION }}
