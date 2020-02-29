@@ -27,8 +27,6 @@ jobs:
         TWINE_USERNAME: '__token__'
         TWINE_PASSWORD: ${{ secrets.test_pypi_password }}
       run: |
-        VERSION=`python version.py`
+        python version.py
         python setup.py sdist bdist_wheel
         twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-        git tag v$VERSION
-        git push --tags
