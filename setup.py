@@ -6,18 +6,18 @@ from setuptools import setup, find_packages
 import json
 
 
-githubEventData = os.environ.get('GITHUB_EVENT_PATH')
-if githubEventData is not None:
-    with open(githubEventData, 'r') as infile:
-        data = json.load(infile)
+# githubEventData = os.environ.get('GITHUB_EVENT_PATH')
+# if githubEventData is not None:
+#     with open(githubEventData, 'r') as infile:
+#         data = json.load(infile)
+#
+#     import pprint
+#     pprint.pprint(data)
 
-    import pprint
-    pprint.pprint(data)
+import subprocess
 
-    import subprocess
-
-    proc = subprocess.Popen('git fetch origin; git rev-list --count origin/`git rev-parse --abbrev-ref HEAD`', shell=True, stdout=subprocess.PIPE)
-    print(proc.communicate())
+proc = subprocess.Popen('git fetch origin; git rev-list --count origin/develop', shell=True, stdout=subprocess.PIPE)
+print(proc.communicate())
 
 
 setup(
