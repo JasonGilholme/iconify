@@ -16,7 +16,7 @@ if githubEventData is not None:
 
     import subprocess
 
-    proc = subprocess.Popen('git rev-list --count HEAD', shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen('git fetch origin; git rev-list --count origin/`git rev-parse --abbrev-ref HEAD`', shell=True, stdout=subprocess.PIPE)
     print(proc.communicate())
 
 
