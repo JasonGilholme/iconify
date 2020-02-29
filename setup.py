@@ -1,13 +1,18 @@
 
+import os
 from setuptools import setup, find_packages
 
 version = 'dev'
+
+dir_ = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(dir_, 'README.md')) as f:
+    long_description = f.read()
 
 setup(
     name='iconify',
     version=version,
     description='An SVG based icon library for Qt',
-    long_description="",
+    long_description=long_description,
     long_description_content_type='text/markdown',
     author='Jason Gilholme',
     author_email='jasongilholme@gmail.com',
