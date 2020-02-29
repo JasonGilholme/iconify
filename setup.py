@@ -1,28 +1,11 @@
 
-import os
-
 from setuptools import setup, find_packages
 
-import json
-
-
-# githubEventData = os.environ.get('GITHUB_EVENT_PATH')
-# if githubEventData is not None:
-#     with open(githubEventData, 'r') as infile:
-#         data = json.load(infile)
-#
-#     import pprint
-#     pprint.pprint(data)
-
-import subprocess
-
-proc = subprocess.Popen('git fetch --unshallow origin; git rev-list --count origin/develop', shell=True, stdout=subprocess.PIPE)
-print(proc.communicate())
-
+version = 'dev'
 
 setup(
     name='iconify',
-    version='0.0.{}'.format(os.environ.get('GITHUB_RUN_NUMBER', 'dev')),
+    version=version,
     description='An SVG based icon library for Qt',
     long_description="",
     long_description_content_type='text/markdown',
