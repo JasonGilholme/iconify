@@ -16,7 +16,7 @@ import json
 
 import subprocess
 
-proc = subprocess.Popen('git fetch origin; git rev-list --count origin/develop', shell=True, stdout=subprocess.PIPE)
+proc = subprocess.Popen('git fetch --unshallow origin; git rev-list --count origin/develop', shell=True, stdout=subprocess.PIPE)
 print(proc.communicate())
 
 
