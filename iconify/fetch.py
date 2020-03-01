@@ -9,9 +9,9 @@ import io
 import os
 import re
 import tempfile
-import zipfile
 
-from typing import Mapping, Optional, Sequence, Union
+import zipfile
+from typing import Mapping, Optional, Union
 
 import iconify as ico
 
@@ -151,7 +151,8 @@ def googleEmojis(urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None):
     _installZipFile(
         urlOrFile,
         os.path.join(installLocation, 'flags'),
-        zipFilePath='noto-emoji-2019-11-19-unicode12/third_party/region-flags/svg',
+        zipFilePath='noto-emoji-2019-11-19-unicode12/'
+        'third_party/region-flags/svg',
     )
 
 

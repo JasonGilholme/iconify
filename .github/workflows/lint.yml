@@ -14,4 +14,4 @@ jobs:
           sudo apt-get update
           sudo apt-get install python-tox
       - name: Run Linters
-        run: tox -e flake8 -e yapf -e isort
+        run: tox -e flake8 -e yapf-check -e isort-check
