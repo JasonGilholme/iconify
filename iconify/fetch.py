@@ -4,11 +4,14 @@ your iconify installation
 """
 
 import distutils.dir_util
+import glob
 import io
 import os
+import re
 import tempfile
 import zipfile
-from typing import Optional, Union
+
+from typing import Mapping, Optional, Sequence, Union
 
 import iconify as ico
 
@@ -26,6 +29,11 @@ _MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/" \
                        "archive/v{0}.zip"
 _ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/" \
                      "archive/master.zip"
+_DASH_ICONS_URL = "https://github.com/WordPress/dashicons/archive/master.zip"
+_FEATHER_ICONS_URL = "https://github.com/feathericons/feather/archive/v{}.zip"
+_GOOGLE_EMOJIS_URL = "https://github.com/googlefonts/noto-emoji/archive/" \
+                     "v2019-11-19-unicode12.zip"
+_UNICODE_EMOJIS_URL = "https://unicode.org/Public/emoji/13.0/emoji-test.txt"
 
 
 def fetch():
@@ -36,6 +44,9 @@ def fetch():
     fontAwesome()
     materialDesign()
     elusiveIcons()
+    dashIcons()
+    featherIcons()
+    googleEmojis()
 
 
 def fontAwesome(version=None, urlOrFile=None, installLocation=None):
@@ -95,6 +106,127 @@ def elusiveIcons(urlOrFile=None, installLocation=None):
         installLocation,
         zipFilePath='elusive-icons-master/dev/icons-svg',
     )
+
+
+def dashIcons(urlOrFile=None, installLocation=None):
+    # type: (Optional[str], Optional[str]) -> None
+    installLocation = installLocation or _getInstallLocation('dash')
+    urlOrFile = urlOrFile or _DASH_ICONS_URL
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='dashicons-master/sources/svg',
+    )
+
+
+def featherIcons(version=None, urlOrFile=None, installLocation=None):
+    # type: (Optional[str], Optional[str], Optional[str]) -> None
+    version = version or '4.26.0'
+    installLocation = installLocation or _getInstallLocation('feather')
+    urlOrFile = urlOrFile or _FEATHER_ICONS_URL.format(version)
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='feather-{}/icons'.format(version),
+    )
+
+
+def googleEmojis(urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None):
+    # type: (Optional[str], Optional[str], Optional[str]) -> None
+    installLocation = installLocation or _getInstallLocation('google-emojis')
+    urlOrFile = urlOrFile or _GOOGLE_EMOJIS_URL
+    emojiMapUrlOrFile = emojiMapUrlOrFile or _UNICODE_EMOJIS_URL
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='noto-emoji-2019-11-19-unicode12/svg',
+    )
+
+    _renameEmojiFiles(installLocation, emojiMapUrlOrFile)
+    _removeUnsupportedNodes(installLocation)
+
+    _installZipFile(
+        urlOrFile,
+        os.path.join(installLocation, 'flags'),
+        zipFilePath='noto-emoji-2019-11-19-unicode12/third_party/region-flags/svg',
+    )
+
+
+def _getEmojiMap(emojiMapUrlOrFile):
+    # type: (str) -> Mapping[str, str]
+    """
+    Create a map of emoji codes to names for file renaming.
+
+    Parameters
+    ----------
+    emojiMapUrlOrFile : str
+
+    Returns
+    -------
+    Mapping[str, str]
+    """
+    emojiMap = {'200d': 'and'}
+
+    if os.path.isfile(emojiMapUrlOrFile):
+        with open(emojiMapUrlOrFile, 'r') as infile:
+            emojiDataLines = infile.readlines()
+    else:
+        print('Downloading file: {}'.format(emojiMapUrlOrFile))
+        emojiDataBytes = _downloadFile(emojiMapUrlOrFile).readlines()
+        emojiDataLines = [str(b) for b in emojiDataBytes]
+
+    for line in emojiDataLines:
+        match = re.match(r"^([^;#]+);[^;]+\.[0-9] ([a-zA-Z0-9 -_]+)$", line)
+        if not match:
+            continue
+
+        code, name = match.groups()
+
+        if len(code.strip().split(' ')) != 1:
+            continue
+
+        emojiMap[code.strip().lower()] = name.strip().replace(' ', '-').lower()
+
+    return emojiMap
+
+
+def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
+    # type: (str, str) -> None
+    """
+    Rename google emoji files by replacing the emoji code with the nice name.
+
+    Parameters
+    ----------
+    installLocation : str
+    emojiMapUrlOrFile : str
+    """
+    emojiMap = _getEmojiMap(emojiMapUrlOrFile)
+
+    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+        basename = os.path.basename(svg)
+        basename, ext = os.path.splitext(basename)
+
+        newParts = []
+
+        for part in basename.replace('emoji_u', '').split('_'):
+            alias = emojiMap.get(part)
+            if alias:
+                newParts.append(alias)
+
+        if not newParts:
+            continue
+
+        alias = '-'.join(newParts).replace(':', '')
+        os.rename(svg, svg.replace(basename, alias))
+
+
+def _removeUnsupportedNodes(installLocation):
+    # type: (str) -> None
+    # TODO: Strip nodes that Qt's svg engine doesn't support.
+    pass
 
 
 def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):

@@ -40,6 +40,9 @@ setup(
             'iconify-fetch-fa=iconify.fetch:fontAwesome',
             'iconify-fetch-mdi=iconify.fetch:materialDesign',
             'iconify-fetch-ei=iconify.fetch:elusiveIcons',
+            'iconify-fetch-dash=iconify.fetch:dashIcons',
+            'iconify-fetch-feather=iconify.fetch:featherIcons',
+            'iconify-fetch-google-emojis=iconify.fetch:googleEmojis',
         ],
     }
 )

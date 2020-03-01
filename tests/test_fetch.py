@@ -12,7 +12,7 @@ def test_fetchLocal(tmpIconPath):
     zipFileDir = os.path.join(
         os.path.dirname(__file__),
         "fixtures",
-        "zipFiles",
+        "fetchFiles",
     )
 
     fontAwesomePath = os.path.join(zipFileDir, 'fontawesome-free-5.12.1-desktop.zip')
@@ -23,3 +23,13 @@ def test_fetchLocal(tmpIconPath):
 
     elusiveIconsPath = os.path.join(zipFileDir, 'elusive-icons-master.zip')
     ico.fetch.elusiveIcons(urlOrFile=elusiveIconsPath)
+
+    dashIconsPath = os.path.join(zipFileDir, 'dashicons-master.zip')
+    ico.fetch.dashIcons(urlOrFile=dashIconsPath)
+
+    feathericonsPath = os.path.join(zipFileDir, 'feather-4.26.0.zip')
+    ico.fetch.featherIcons(urlOrFile=feathericonsPath)
+
+    googleEmojiPath = os.path.join(zipFileDir, 'noto-emoji-2019-11-19-unicode12.zip')
+    googleEmojiMapPath = os.path.join(zipFileDir, 'emoji-test.txt')
+    ico.fetch.googleEmojis(urlOrFile=googleEmojiPath, emojiMapUrlOrFile=googleEmojiMapPath)
