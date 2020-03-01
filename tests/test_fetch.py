@@ -1,9 +1,15 @@
 
 import os
 
+import pytest
+
 import iconify as ico
 
 
+@pytest.mark.skipif(
+    not bool(os.environ.get('GITHUB_WORKFLOW')),
+    reason="Only test remote fetching on CI",
+)
 def test_fetchRemote(tmpIconPath):
     ico.fetch.fetch()
 

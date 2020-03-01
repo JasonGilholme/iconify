@@ -11,7 +11,7 @@ import re
 import sys
 import tempfile
 import zipfile
-from typing import Mapping, Optional, Union
+from typing import IO, Any, List, Mapping, Optional, Union
 
 import iconify as ico
 
@@ -173,14 +173,16 @@ def _getEmojiMap(emojiMapUrlOrFile):
 
     if os.path.isfile(emojiMapUrlOrFile):
         with _openFile(emojiMapUrlOrFile) as infile:
-            emojiDataLines = infile.readlines()
+            emojiDataLines = infile.readlines()  # type: List[bytes]
     else:
         print('Downloading file: {}'.format(emojiMapUrlOrFile))
-        emojiDataBytes = _downloadFile(emojiMapUrlOrFile).readlines()
-        emojiDataLines = [str(b) for b in emojiDataBytes]
+        emojiDataLines = _downloadFile(emojiMapUrlOrFile).readlines()
 
     for line in emojiDataLines:
-        match = re.match(r"^([^;#]+);[^;]+\.[0-9] ([a-zA-Z0-9 -_]+)$", line)
+        match = re.match(
+            r"^([^;#]+);[^;]+\.[0-9] ([a-zA-Z0-9 -_]+)$",
+            str(line),
+        )
         if not match:
             continue
 
@@ -195,7 +197,7 @@ def _getEmojiMap(emojiMapUrlOrFile):
 
 
 def _openFile(filePath):
-    # type: (str) -> io.BinaryIO
+    # type: (str) -> IO[Any]
     if sys.version_info[0] == 3:
         return open(filePath, 'r', encoding='utf-8')
     else:
