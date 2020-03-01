@@ -26,6 +26,7 @@ setup(
     packages=find_packages(),
     install_requires=install_requires,
     include_package_data=True,
+    data_files=[('requirements', ['requirements.txt'])],
     platforms=['OS-independent'],
     classifiers=[
         'Development Status :: 3 - Alpha',
