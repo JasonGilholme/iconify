@@ -2,12 +2,12 @@
 A browser for exploring the available images and possible options.
 """
 
-import os
 import sys
 from typing import Any, NoReturn, Optional
 
 import iconify as ico
 from iconify.qt import QtCore, QtGui, QtWidgets
+from kids.cache import cache
 
 VIEW_COLUMNS = 5
 AUTO_SEARCH_TIMEOUT = 500
@@ -24,9 +24,9 @@ class Browser(QtWidgets.QMainWindow):
         self.setMinimumSize(1024, 576)
         self.setWindowTitle('Iconify Browser')
 
-        self._currentIcon = None
-        self._currentAnim = None
-        self._currentColor = None
+        self._currentIcon = None  # type: Optional[QtGui.QIcon]
+        self._currentAnim = None  # type: Optional[ico.anim.BaseAnimation]
+        self._currentColor = None  # type: Optional[QtGui.QColor]
 
         iconNames = ico.path.listIcons()
 
@@ -48,7 +48,9 @@ class Browser(QtWidgets.QMainWindow):
         self._listView.setModel(self._proxyModel)
         self._listView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._listView.doubleClicked.connect(self._copyIconText)
-        self._listView.selectionModel().currentChanged.connect(self._selectionChanged)
+        self._listView.selectionModel().currentChanged.connect(
+            self._iconChanged
+        )
 
         self._lineEdit = QtWidgets.QLineEdit(self)
         self._lineEdit.setAlignment(QtCore.Qt.AlignCenter)
@@ -64,7 +66,9 @@ class Browser(QtWidgets.QMainWindow):
 
         self._collectionsCombo = QtWidgets.QComboBox(self)
         self._collectionsCombo.addItems([ALL_COLLECTIONS] + collections)
-        self._collectionsCombo.currentIndexChanged.connect(self._triggerImmediateUpdate)
+        self._collectionsCombo.currentIndexChanged.connect(
+            self._triggerImmediateUpdate
+        )
 
         lyt = QtWidgets.QHBoxLayout()
         lyt.setContentsMargins(0, 0, 0, 0)
@@ -73,6 +77,9 @@ class Browser(QtWidgets.QMainWindow):
 
         searchBarFrame = QtWidgets.QFrame(self)
         searchBarFrame.setLayout(lyt)
+
+        self._iconName = QtWidgets.QLabel()
+        self._iconName.setAlignment(QtCore.Qt.AlignCenter)
 
         self._copyButton = QtWidgets.QPushButton('Copy Name', self)
         self._copyButton.clicked.connect(self._copyIconText)
@@ -95,16 +102,23 @@ class Browser(QtWidgets.QMainWindow):
         self._animCombo.currentIndexChanged.connect(self._animChanged)
 
         self._colorCombo = QtWidgets.QComboBox(self)
-        self._colorCombo.addItems([NO_COLOR] + sorted(QtGui.QColor.colorNames()))
+        self._colorCombo.addItems([NO_COLOR] +
+                                  sorted(QtGui.QColor.colorNames()))
         self._colorCombo.currentIndexChanged.connect(self._colorChanged)
 
         self._previewFrame = QtWidgets.QFrame(self)
         self._previewFrame.setFixedWidth(200)
 
         lyt.addWidget(self._previewImage)
+        lyt.addWidget(self._iconName)
         lyt.addWidget(self._animCombo)
         lyt.addWidget(self._colorCombo)
-        lyt.addSpacerItem(QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
+        lyt.addSpacerItem(
+            QtWidgets.QSpacerItem(
+                0, 0, QtWidgets.QSizePolicy.Expanding,
+                QtWidgets.QSizePolicy.Expanding
+            )
+        )
 
         self._previewFrame.setLayout(lyt)
 
@@ -132,21 +146,26 @@ class Browser(QtWidgets.QMainWindow):
         geo.moveCenter(centerPoint)
         self.setGeometry(geo)
 
-    def _selectionChanged(self, currentIndex, previousIndex):
-        currentIcon = currentIndex.data()
+    def _iconChanged(self, currentIndex, previousIndex):
+        # type: (QtCore.QModelIndex, QtCore.QModelIndex) -> None
+        currentIcon = currentIndex.data(QtCore.Qt.DisplayRole)
         self._currentIcon = currentIcon
         self._updatePixmapGenerator()
+        self._iconName.setText(self._currentIcon)
 
     def _animChanged(self):
+        # type: () -> None
         currentAnim = self._animCombo.currentText()
         if currentAnim == NO_ANIM:
             self._currentAnim = None
         else:
             self._currentAnim = getattr(ico.anim, currentAnim)()
-            self._currentAnim.start()
+            if self._currentAnim is not None:
+                self._currentAnim.start()
         self._updatePixmapGenerator()
 
     def _colorChanged(self):
+        # type: () -> None
         currentColor = self._colorCombo.currentText()
         if currentColor == NO_COLOR:
             self._currentColor = None
@@ -155,10 +174,13 @@ class Browser(QtWidgets.QMainWindow):
         self._updatePixmapGenerator()
 
     def _updatePixmapGenerator(self):
+        # type: () -> None
         if self._currentIcon is None:
             pixmapGenerator = None
         else:
-            pixmapGenerator = ico.PixmapGenerator(self._currentIcon, self._currentColor, self._currentAnim)
+            pixmapGenerator = ico.PixmapGenerator(
+                self._currentIcon, self._currentColor, self._currentAnim
+            )
 
         self._previewImage.setPixmapGenerator(pixmapGenerator)
 
@@ -249,6 +271,7 @@ class Model(QtCore.QStringListModel):
         # type: (QtCore.QModelIndex) -> QtCore.QItemFlags
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
+    @cache
     def data(self, index, role=QtCore.Qt.DisplayRole):
         # type: (QtCore.QModelIndex, QtCore.Qt.ItemRole) -> Any
         """
@@ -272,11 +295,13 @@ class Model(QtCore.QStringListModel):
 class PixmapGeneratorLabel(QtWidgets.QLabel):
 
     def __init__(self, pixmapGenerator=None):
+        # type: (Optional[ico.PixmapGenerator]) -> None
         super(PixmapGeneratorLabel, self).__init__()
-        self._pixmapGenerator = None
+        self._pixmapGenerator = None  # type: Optional[ico.PixmapGenerator]
         self.setPixmapGenerator(pixmapGenerator)
 
     def setPixmapGenerator(self, pixmapGenerator):
+        # type: (Optional[ico.PixmapGenerator]) -> None
         if self._pixmapGenerator:
             anim = self._pixmapGenerator.anim()
             if anim:
@@ -292,6 +317,7 @@ class PixmapGeneratorLabel(QtWidgets.QLabel):
         self.update()
 
     def paintEvent(self, event):
+        # type: (QtGui.QPaintEvent) -> None
         super(PixmapGeneratorLabel, self).paintEvent(event)
 
         if self._pixmapGenerator is None:
@@ -307,8 +333,9 @@ class PixmapGeneratorLabel(QtWidgets.QLabel):
         pixmap = self._pixmapGenerator.pixmap(size)
 
         painter = QtGui.QPainter(self)
-        halfSize  = size / 2
-        point = rect.center() - QtCore.QPoint(halfSize.width(), halfSize.height())
+        halfSize = size / 2
+        point = rect.center(
+        ) - QtCore.QPoint(halfSize.width(), halfSize.height())
         painter.drawPixmap(point, pixmap)
         painter.end()
 

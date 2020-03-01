@@ -28,13 +28,15 @@ iconify-fetch
 iconify-browser
 ```
 
-Once you have the icon browser open, you'll be able to copy the name of the icon
-you want and then jump into python:
+![alt text](images/browser.png)
+
+Once you have the icon browser open, search for the type of icon you want and
+copy the name to the clipboard. Then you can jump into python:
 
 ```python
 import iconify as ico
 
-icon = ico.Icon('fa:brands:github')
+icon = ico.Icon('google-emojis:face-with-symbols-on-mouth')
 myQtButton.setIcon(icon)
 ```
 

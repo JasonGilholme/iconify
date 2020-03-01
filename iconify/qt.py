@@ -7,7 +7,7 @@ import pydoc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from PySide2 import QtCore, QtGui, QtSvg, QtWidgets
+    from PySide2 import QtCore, QtGui, QtSvg, QtWidgets, QtXml
     qtlib = 'PySide2'
 else:
     qtlib = os.environ.get("ICONIFY_QTLIB", "PySide2")
@@ -16,6 +16,7 @@ else:
     QtGui = pydoc.locate(qtlib + '.QtGui')
     QtSvg = pydoc.locate(qtlib + '.QtSvg')
     QtWidgets = pydoc.locate(qtlib + '.QtWidgets')
+    QtXml = pydoc.locate(qtlib + '.QtXml')
 
 
 _IMPORT_ERROR_MESSAGE = \
@@ -23,5 +24,5 @@ _IMPORT_ERROR_MESSAGE = \
     "'ICONIFY_QTLIB' env var to the location of a Qt5 compliant python " \
     "binding you would like to use."
 
-if None in (QtCore, QtGui, QtSvg, QtWidgets):
+if None in (QtCore, QtGui, QtSvg, QtWidgets, QtXml):
     raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib))

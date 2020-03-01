@@ -10,7 +10,7 @@ from iconify.qt import QtCore, QtGui, QtSvg
 if TYPE_CHECKING:
     from iconify.anim import BaseAnimation
     from iconify.qt import QtWidgets
-    PixmapCacheKey = Tuple[Optional[str], QtCore.QSize, str, int]
+    PixmapCacheKey = Tuple[Optional[str], QtCore.QSize, str, int, int]
 
 _PIXMAP_CACHE = {}  # type: MutableMapping[PixmapCacheKey, QtGui.QPixmap]
 
@@ -156,10 +156,12 @@ class PixmapGenerator(QtCore.QObject):
         -------
         QtGui.QPixmap
         """
-        color = self._color.rgb() if self._color else None
+        color = self._color.rgb() if self._color else -1
+
         if self._anim is not None:
             key = (
-                self._path, size, str(self._anim.__class__), self._anim.frame(), color
+                self._path, size, str(self._anim.__class__),
+                self._anim.frame(), color
             )  # type: PixmapCacheKey
         else:
             key = (self._path, size, "", 0, color)

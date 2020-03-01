@@ -14,6 +14,7 @@ import zipfile
 from typing import IO, Any, List, Mapping, Optional, Union
 
 import iconify as ico
+from iconify.qt import QtCore, QtXml
 
 try:
     # Python 2
@@ -236,8 +237,30 @@ def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
 
 def _removeUnsupportedNodes(installLocation):
     # type: (str) -> None
-    # TODO: Strip nodes that Qt's svg engine doesn't support.
-    pass
+    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+
+        dom = QtXml.QDomDocument("initData")
+
+        svgFile = QtCore.QFile(svg)
+        svgFile.open(QtCore.QIODevice.ReadWrite)
+        dom.setContent(svgFile)
+
+        defNodes = dom.elementsByTagName('defs')
+        for i in range(defNodes.count()):
+            node = defNodes.item(0)
+            node.parentNode().removeChild(node)
+
+        symbolNodes = dom.elementsByTagName('symbol')
+        for i in range(symbolNodes.count()):
+            node = symbolNodes.item(0)
+            node.parentNode().removeChild(node)
+
+        byteArray = QtCore.QByteArray()
+        textStream = QtCore.QTextStream(byteArray)
+        dom.save(textStream, 0)
+
+        svgFile.write(byteArray)
+        svgFile.close()
 
 
 def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):
