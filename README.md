@@ -8,8 +8,10 @@
 ![](https://github.com/jasongilholme/iconify/workflows/lint/badge.svg)
 ![](coverage.svg)
 
-Iconify provides a way of creating `QIcon`'s and `QPixmaps`'s from svg files with
-additional hooks for overriding the color and providing animation.
+Iconify allows you to create `QIcon`s and `QPixmap`s from svg files with 
+different color and animation.  It provides a way of fetching popular image
+packs such as Font Awesome, Material Design etc and installing them on the 
+path that's used for finding images.
 
 ## Quickstart
 
@@ -27,7 +29,7 @@ iconify-browser
 ```
 
 Once you have the icon browser open, you'll be able to copy the name of the icon
-you want and then dive into python:
+you want and then jump into python:
 
 ```python
 import iconify as ico
@@ -38,7 +40,7 @@ myQtButton.setIcon(icon)
 
 ## Configuration
 
-Iconfiy will search paths identified by the `ICONIFY_PATH` environment variable.
+Iconify will search paths identified by the `ICONIFY_PATH` environment variable.
 You can also set this at runtime with the following code:
 
 ```python
@@ -50,7 +52,7 @@ ico.path.addIconDirectory('/path/to/icon/dir')
 You will also require a Qt python binding such as `PySide2`. Iconify will use the 
 binding identified by the `ICONIFY_QTLIB` environment variable.  Set this variable
 to the name required to import the python binding e.g. `PySide2` or `PyQt5`. 
-Iconify expects Qt5 namespaces so if you'd like to use this library with Qt4
+Iconify expects Qt5 interfaces so if you'd like to use this library with Qt4
 you should consider using a shim such as `Qt.py` or `QtPy`.
 
 
@@ -148,7 +150,7 @@ def loadData():
 ### Pixmaps
 
 It's also possible to use iconify to create pixmaps.  The following code is a 
-custom `QLabel` subclass which using iconfiy to draw a pixmap in the center of
+custom `QLabel` subclass which using iconify to draw a `QPixmap` in the center of
 the label:
 
 ```python

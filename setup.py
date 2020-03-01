@@ -11,7 +11,8 @@ with open(os.path.join(dir_, 'README.md')) as f:
 setup(
     name='iconify',
     version=version,
-    description='An SVG based icon library for Qt',
+    description="An icon and image library for Qt that lets you use svg's "
+                "from common packs like FontAwesome, MateriallDesign etc.",
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Jason Gilholme',

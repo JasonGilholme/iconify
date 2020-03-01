@@ -70,7 +70,7 @@ def fontAwesome(version=None, urlOrFile=None, installLocation=None):
     installLocation : Optional[str]
     """
     version = version or '5.12.1'
-    installLocation = installLocation or _getInstallLocation('fa')
+    installLocation = installLocation or _getInstallLocation('font-awesome')
     urlOrFile = urlOrFile or _FONT_AWESOME_URL.format(version)
 
     filename, ext = os.path.splitext(os.path.basename(urlOrFile))
@@ -86,7 +86,7 @@ def fontAwesome(version=None, urlOrFile=None, installLocation=None):
 def materialDesign(version=None, urlOrFile=None, installLocation=None):
     # type: (Optional[str], Optional[str], Optional[str]) -> None
     version = version or '4.9.95'
-    installLocation = installLocation or _getInstallLocation('mdi')
+    installLocation = installLocation or _getInstallLocation('material-design')
     urlOrFile = urlOrFile or _MATERIAL_DESIGN_URL.format(version)
 
     _installZipFile(
@@ -98,7 +98,7 @@ def materialDesign(version=None, urlOrFile=None, installLocation=None):
 
 def elusiveIcons(urlOrFile=None, installLocation=None):
     # type: (Optional[str], Optional[str]) -> None
-    installLocation = installLocation or _getInstallLocation('ei')
+    installLocation = installLocation or _getInstallLocation('elusive')
     urlOrFile = urlOrFile or _ELUSIVE_ICONS_URL
 
     _installZipFile(
