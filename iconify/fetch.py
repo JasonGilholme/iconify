@@ -8,6 +8,7 @@ import glob
 import io
 import os
 import re
+import sys
 import tempfile
 import zipfile
 from typing import Mapping, Optional, Union
@@ -171,7 +172,7 @@ def _getEmojiMap(emojiMapUrlOrFile):
     emojiMap = {'200d': 'and'}
 
     if os.path.isfile(emojiMapUrlOrFile):
-        with open(emojiMapUrlOrFile, 'r') as infile:
+        with _openFile(emojiMapUrlOrFile) as infile:
             emojiDataLines = infile.readlines()
     else:
         print('Downloading file: {}'.format(emojiMapUrlOrFile))
@@ -191,6 +192,14 @@ def _getEmojiMap(emojiMapUrlOrFile):
         emojiMap[code.strip().lower()] = name.strip().replace(' ', '-').lower()
 
     return emojiMap
+
+
+def _openFile(filePath):
+    # type: (str) -> io.BinaryIO
+    if sys.version_info[0] == 3:
+        return open(filePath, 'r', encoding='utf-8')
+    else:
+        return open(filePath, 'r')
 
 
 def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
