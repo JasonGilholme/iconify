@@ -99,34 +99,25 @@ class PixmapGenerator(QtCore.QObject):
 
     def __init__(
         self,
-        path=None,  # type: str
+        path,  # type: str
         color=None,  # type: Optional[QtGui.QColor]
         anim=None,  # type: Optional[BaseAnimation]
         parent=None,  # type: Optional[QtCore.QObject]
     ):
         # type: (...) -> None
         super(PixmapGenerator, self).__init__(parent=parent)
-        self._path = None  # type: Optional[str]
+        self._path = path
         self._color = None  # type: Optional[QtGui.QColor]
         self._anim = None  # type: Optional[BaseAnimation]
 
-        self._renderer = QtSvg.QSvgRenderer()
+        self._renderer = QtSvg.QSvgRenderer(findIcon(self._path))
 
-        self.setPath(path)
         self.setColor(color)
         self.setAnim(anim)
 
     def path(self):
         # type: () -> Optional[str]
         return self._path
-
-    def setPath(self, path):
-        # type: (Optional[str]) -> None
-        if path is None:
-            self._path = path
-        else:
-            self._path = findIcon(path)
-        self._renderer.load(self._path)
 
     def color(self):
         # type: () -> Optional[QtGui.QColor]
@@ -165,12 +156,13 @@ class PixmapGenerator(QtCore.QObject):
         -------
         QtGui.QPixmap
         """
+        color = self._color.rgb() if self._color else None
         if self._anim is not None:
             key = (
-                self._path, size, str(self._anim.__class__), self._anim.frame()
+                self._path, size, str(self._anim.__class__), self._anim.frame(), color
             )  # type: PixmapCacheKey
         else:
-            key = (self._path, size, "", 0)
+            key = (self._path, size, "", 0, color)
 
         if key in _PIXMAP_CACHE:
             return _PIXMAP_CACHE[key]
