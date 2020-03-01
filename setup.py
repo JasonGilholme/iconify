@@ -8,6 +8,9 @@ dir_ = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(dir_, 'README.md')) as f:
     long_description = f.read()
 
+with open(os.path.join(dir_, 'requirements.txt')) as f:
+    install_requires = f.read()
+
 setup(
     name='iconify',
     version=version,
@@ -21,7 +24,7 @@ setup(
     url='https://github.com/jasongilholme/iconify',
     keywords=['Qt', 'icons', 'svg', 'PySide', 'PyQt'],
     packages=find_packages(),
-    install_requires=['qtpy', 'six'],
+    install_requires=install_requires,
     include_package_data=True,
     platforms=['OS-independent'],
     classifiers=[
