@@ -216,7 +216,7 @@ def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
             if alias:
                 newParts.append(alias)
 
-        if not newParts or newParts == ["and"]:
+        if not newParts or all([a == 'and' for a in newParts]):
             continue
 
         alias = '-'.join(newParts).replace(':', '')
