@@ -50,6 +50,7 @@ def fetch():
     dashIcons()
     featherIcons()
     googleEmojis()
+    emojioneLegacy()
 
 
 def fontAwesome(version=None, urlOrFile=None, installLocation=None):
@@ -267,7 +268,8 @@ def _renameEmojiOneFiles(installLocation, emojiMapUrlOrFile):
             continue
 
         alias = '-'.join(newParts).replace(':', '')
-        os.rename(svg, svg.replace(basename, alias))
+        if basename != alias:
+            os.rename(svg, svg.replace(basename, alias))
 
 
 def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
@@ -297,7 +299,8 @@ def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
             continue
 
         alias = '-'.join(newParts).replace(':', '')
-        os.rename(svg, svg.replace(basename, alias))
+        if basename != alias:
+            os.rename(svg, svg.replace(basename, alias))
 
 
 def _removeUnsupportedNodes(installLocation):
