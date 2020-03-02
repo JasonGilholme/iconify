@@ -21,6 +21,8 @@ def test_fetchLocal(tmpIconPath):
         "fetchFiles",
     )
 
+    emojiMapPath = os.path.join(zipFileDir, 'emoji-test.txt')
+
     fontAwesomePath = os.path.join(zipFileDir, 'fontawesome-free-5.12.1-desktop.zip')
     ico.fetch.fontAwesome(urlOrFile=fontAwesomePath)
 
@@ -37,5 +39,7 @@ def test_fetchLocal(tmpIconPath):
     ico.fetch.featherIcons(urlOrFile=feathericonsPath)
 
     googleEmojiPath = os.path.join(zipFileDir, 'noto-emoji-2019-11-19-unicode12.zip')
-    googleEmojiMapPath = os.path.join(zipFileDir, 'emoji-test.txt')
-    ico.fetch.googleEmojis(urlOrFile=googleEmojiPath, emojiMapUrlOrFile=googleEmojiMapPath)
+    ico.fetch.googleEmojis(urlOrFile=googleEmojiPath, emojiMapUrlOrFile=emojiMapPath)
+
+    emojioneLegacyPath = os.path.join(zipFileDir, 'emojione-legacy-master.zip')
+    ico.fetch.emojioneLegacy(urlOrFile=emojioneLegacyPath, emojiMapUrlOrFile=emojiMapPath)

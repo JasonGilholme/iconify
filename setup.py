@@ -48,6 +48,7 @@ setup(
             'iconify-fetch-dash=iconify.fetch:dashIcons',
             'iconify-fetch-feather=iconify.fetch:featherIcons',
             'iconify-fetch-google-emojis=iconify.fetch:googleEmojis',
+            'iconify-fetch-emojione-legacy=iconify.fetch:emojioneLegacy',
         ],
     }
 )

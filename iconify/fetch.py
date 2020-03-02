@@ -35,6 +35,8 @@ _FEATHER_ICONS_URL = "https://github.com/feathericons/feather/archive/v{}.zip"
 _GOOGLE_EMOJIS_URL = "https://github.com/googlefonts/noto-emoji/archive/" \
                      "v2019-11-19-unicode12.zip"
 _UNICODE_EMOJIS_URL = "https://unicode.org/Public/emoji/13.0/emoji-test.txt"
+_EMOJIONE_LEGACY_URL = "https://github.com/joypixels/emojione-legacy/" \
+                       "archive/master.zip"
 
 
 def fetch():
@@ -157,6 +159,23 @@ def googleEmojis(urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None):
     )
 
 
+def emojioneLegacy(
+    urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None
+):
+    # type: (Optional[str], Optional[str], Optional[str]) -> None
+    installLocation = installLocation or _getInstallLocation('emojione-legacy')
+    urlOrFile = urlOrFile or _EMOJIONE_LEGACY_URL
+    emojiMapUrlOrFile = emojiMapUrlOrFile or _UNICODE_EMOJIS_URL
+
+    _installZipFile(
+        urlOrFile,
+        installLocation,
+        zipFilePath='emojione-legacy-master/svg',
+    )
+
+    _renameEmojiOneFiles(installLocation, emojiMapUrlOrFile)
+
+
 def _getEmojiMap(emojiMapUrlOrFile):
     # type: (str) -> Mapping[str, str]
     """
@@ -181,7 +200,7 @@ def _getEmojiMap(emojiMapUrlOrFile):
 
     for line in emojiDataLines:
         match = re.match(
-            r"^([^;#]+);[^;]+\.[0-9] ([a-zA-Z0-9 -_]+)$",
+            r"^(.*);.*E[0-9\.]+(.*)$",
             str(line),
         )
         if not match:
@@ -189,12 +208,28 @@ def _getEmojiMap(emojiMapUrlOrFile):
 
         code, name = match.groups()
 
-        if len(code.strip().split(' ')) != 1:
-            continue
+        codes = code.strip().split(' ')
+        names = name.strip().split(':')
 
-        emojiMap[code.strip().lower()] = name.strip().replace(' ', '-').lower()
+        if len(codes) == 1:
+            names = [name.strip()]
+
+        for i, name in enumerate(names):
+            code = codes[i].strip().lower()
+            if code in emojiMap:
+                continue
+            emojiMap[code.strip().lower()] = _cleanName(name)
 
     return emojiMap
+
+
+def _cleanName(name):
+    # type: (str) -> str
+    name = name.strip()
+    name = name.replace(' ', '-').replace(':', '')
+    stripped = (c for c in name if 0 < ord(c) < 127)
+    name = ''.join(stripped)
+    return name.lower()
 
 
 def _openFile(filePath):
@@ -203,6 +238,36 @@ def _openFile(filePath):
         return open(filePath, 'r', encoding='utf-8')
     else:
         return open(filePath, 'r')
+
+
+def _renameEmojiOneFiles(installLocation, emojiMapUrlOrFile):
+    # type: (str, str) -> None
+    """
+    Rename emojione files by replacing the emoji code with the nice name.
+
+    Parameters
+    ----------
+    installLocation : str
+    emojiMapUrlOrFile : str
+    """
+    emojiMap = _getEmojiMap(emojiMapUrlOrFile)
+
+    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+        basename = os.path.basename(svg)
+        basename, ext = os.path.splitext(basename)
+
+        newParts = []
+
+        for part in basename.split('-'):
+            alias = emojiMap.get(part.lower())
+            if alias:
+                newParts.append(alias)
+
+        if not newParts or all([a == 'and' for a in newParts]):
+            continue
+
+        alias = '-'.join(newParts).replace(':', '')
+        os.rename(svg, svg.replace(basename, alias))
 
 
 def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
@@ -242,8 +307,9 @@ def _removeUnsupportedNodes(installLocation):
         dom = QtXml.QDomDocument("initData")
 
         svgFile = QtCore.QFile(svg)
-        svgFile.open(QtCore.QIODevice.ReadWrite)
+        svgFile.open(QtCore.QIODevice.ReadOnly)
         dom.setContent(svgFile)
+        svgFile.close()
 
         defNodes = dom.elementsByTagName('defs')
         for i in range(defNodes.count()):
@@ -259,6 +325,8 @@ def _removeUnsupportedNodes(installLocation):
         textStream = QtCore.QTextStream(byteArray)
         dom.save(textStream, 0)
 
+        svgFile = QtCore.QFile(svg)
+        svgFile.open(QtCore.QIODevice.WriteOnly)
         svgFile.write(byteArray)
         svgFile.close()
 
