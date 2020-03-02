@@ -18,10 +18,10 @@ from iconify.qt import QtCore, QtXml
 
 try:
     # Python 2
-    from urllib2 import urlopen
+    from urllib import urlretrieve
 except ImportError:
     # Python 3
-    from urllib.request import urlopen
+    from urllib.request import urlretrieve
 
 
 _FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/" \
@@ -192,12 +192,11 @@ def _getEmojiMap(emojiMapUrlOrFile):
     """
     emojiMap = {'200d': 'and'}
 
-    if os.path.isfile(emojiMapUrlOrFile):
-        with _openFile(emojiMapUrlOrFile) as infile:
-            emojiDataLines = infile.readlines()  # type: List[bytes]
-    else:
-        print('Downloading file: {}'.format(emojiMapUrlOrFile))
-        emojiDataLines = _downloadFile(emojiMapUrlOrFile).readlines()
+    if not os.path.isfile(emojiMapUrlOrFile):
+        emojiMapUrlOrFile = _downloadFile(emojiMapUrlOrFile)
+
+    with _openFile(emojiMapUrlOrFile) as infile:
+        emojiDataLines = infile.readlines()  # type: List[str]
 
     for line in emojiDataLines:
         match = re.match(
@@ -339,19 +338,15 @@ def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):
     if not os.path.isdir(installLocation):
         os.makedirs(installLocation)
 
-    if os.path.isfile(urlOrFilePath):
-        zipFile = urlOrFilePath  # type: Union[str, io.BytesIO]
-    else:
-        print('Downloading file: {}'.format(urlOrFilePath))
-        zipFile = _downloadFile(urlOrFilePath)
+    if not os.path.isfile(urlOrFilePath):
+        urlOrFilePath = _downloadFile(urlOrFilePath)
 
-    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempDownload')
-
+    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempExtraction')
     if os.path.isdir(tmpdir):
         distutils.dir_util.remove_tree(tmpdir)
 
     print('Extracting to: {}'.format(installLocation))
-    with zipfile.ZipFile(zipFile) as zipData:
+    with zipfile.ZipFile(urlOrFilePath) as zipData:
         zipData.extractall(tmpdir)
 
         if zipFilePath:
@@ -363,9 +358,21 @@ def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):
 
 
 def _downloadFile(url):
-    # type: (str) -> io.BytesIO
-    response = urlopen(url)
-    return io.BytesIO(response.read())
+    # type: (str) -> str
+    urlFile = os.path.basename(url)
+    downloadDest = os.path.join(
+        tempfile.gettempdir(),
+        'iconfiyTempDownload',
+        urlFile,
+    )
+
+    if not os.path.isfile(downloadDest):
+        print('Downloading file: {}'.format(url))
+        urlretrieve(url, downloadDest)
+    else:
+        print("Found existing download: {}".format(downloadDest))
+
+    return downloadDest
 
 
 def _getInstallLocation(suffix):

@@ -41,14 +41,14 @@ setup(
     entry_points={
         'console_scripts': [
             'iconify-browser=iconify.browser:run',
-            'iconify-fetch=iconify.fetch:fetch',
-            'iconify-fetch-fa=iconify.fetch:fontAwesome',
-            'iconify-fetch-mdi=iconify.fetch:materialDesign',
-            'iconify-fetch-ei=iconify.fetch:elusiveIcons',
-            'iconify-fetch-dash=iconify.fetch:dashIcons',
-            'iconify-fetch-feather=iconify.fetch:featherIcons',
-            'iconify-fetch-google-emojis=iconify.fetch:googleEmojis',
-            'iconify-fetch-emojione-legacy=iconify.fetch:emojioneLegacy',
+            'iconify-fetch=iconify.fetch_new:fetch',
+            # 'iconify-fetch-fa=iconify.fetch:fontAwesome',
+            # 'iconify-fetch-mdi=iconify.fetch:materialDesign',
+            # 'iconify-fetch-ei=iconify.fetch:elusiveIcons',
+            # 'iconify-fetch-dash=iconify.fetch:dashIcons',
+            # 'iconify-fetch-feather=iconify.fetch:featherIcons',
+            # 'iconify-fetch-google-emojis=iconify.fetch:googleEmojis',
+            # 'iconify-fetch-emojione-legacy=iconify.fetch:emojioneLegacy',
         ],
     }
 )
