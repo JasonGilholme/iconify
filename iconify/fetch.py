@@ -233,8 +233,9 @@ class GoogleEmojis(EmojiFetcher):
                 continue
 
             alias = '-'.join(newParts).replace(':', '')
-            if basename != alias:
-                os.rename(svg, svg.replace(basename, alias))
+            destinationFile = svg.replace(basename, alias)
+            if not os.path.isfile(destinationFile):
+                os.rename(svg, destinationFile)
 
     @classmethod
     def _removeUnsupportedNodes(cls, installLocation):
