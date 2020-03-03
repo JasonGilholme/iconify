@@ -78,8 +78,11 @@ To set the color of the icon, provide a `QColor` object via the `color` kwarg:
 
 ```python
 import iconify as ico
+from iconify.qt import QtGui, QtWidgets
 
 icon = ico.Icon('filters', color=QtGui.QColor('salmon'))
+
+button = QtWidgets.QPushButton()
 button.setIcon(icon)
 ```
 
@@ -89,6 +92,7 @@ For animation, instantiate an animation object and pass it in via the `anim` kwa
 
 ```python
 import iconify as ico
+from iconify.qt import QtGui, QtWidgets
 
 anim = ico.anim.Spin()
 icon = ico.Icon(
@@ -100,10 +104,45 @@ icon = ico.Icon(
 
 # `icon.setAsButtonIcon` is used here so that the animation
 # used by the icon will update the widget when it plays.
+button = QtWidgets.QPushButton()
 icon.setAsButtonIcon(button)
 
 # Start the animation
 anim.start()
+```
+
+### Multi State Icons
+
+To create a multi state icon, call `addState` with the appropriate `mode` and `state`
+kwargs to set the values you want.
+
+```python
+import iconify as ico
+from iconify.qt import QtGui, QtWidgets
+
+onHoverAnimation = ico.anim.Spin()
+
+icon = ico.Icon('filters', color=QtGui.QColor('salmon'))
+# When the button has focus, make it green and spinning.
+icon.addState(
+    'filters',
+    color=QtGui.QColor('seagreen'),
+    anim=onHoverAnimation,
+    mode=QtGui.QIcon.Active,
+)
+# Make it gray when it's disabled.
+icon.addState(
+    'filters',
+    color=QtGui.QColor('gray'),
+    mode=QtGui.QIcon.Disabled,
+)
+
+button = QtWidgets.QPushButton()
+button.setIcon(icon)
+
+# Connect directly to the animation here to
+# ensure that the button animates on hover.
+onHoverAnimation.tick.connect(button.update)
 ```
 
 ### Advanced Animation
@@ -114,6 +153,7 @@ an event happens e.g. loading something:
 
 ```python
 import iconify as ico
+from iconify.qt import QtGui, QtWidgets
 
 # Animations can be added together using the + operator.
 loadingAnim = ico.anim.Spin() + ico.anim.Breathe()
@@ -131,9 +171,16 @@ detailedIcon = ico.Icon(
 )
 
 # Use those icons on multiple buttons
+smallButtonOne = QtWidgets.QPushButton()
 simpleIcon.setAsButtonIcon(smallButtonOne)
+
+smallButtonTwo = QtWidgets.QPushButton()
 simpleIcon.setAsButtonIcon(smallButtonTwo)
+
+largeButtonOne = QtWidgets.QPushButton()
 detailedIcon.setAsButtonIcon(largeButtonOne)
+
+largeButtonTwo = QtWidgets.QPushButton()
 detailedIcon.setAsButtonIcon(largeButtonTwo)
 
 
