@@ -5,222 +5,308 @@ your iconify installation
 
 import distutils.dir_util
 import glob
-import io
+import inspect
 import os
 import re
 import sys
 import tempfile
 import zipfile
-from typing import IO, Any, List, Mapping, Optional, Union
+from typing import IO, Any, List, Mapping, Optional, Tuple
 
 import iconify as ico
 from iconify.qt import QtCore, QtXml
 
-try:
-    # Python 2
+if sys.version_info[0] == 2:
     from urllib import urlretrieve
-except ImportError:
-    # Python 3
+else:
     from urllib.request import urlretrieve
-
-
-_FONT_AWESOME_URL = "https://github.com/FortAwesome/Font-Awesome/releases/" \
-                    "download/{0}/fontawesome-free-{0}-desktop.zip"
-_MATERIAL_DESIGN_URL = "https://github.com/Templarian/MaterialDesign-SVG/" \
-                       "archive/v{0}.zip"
-_ELUSIVE_ICONS_URL = "https://github.com/reduxframework/elusive-icons/" \
-                     "archive/master.zip"
-_DASH_ICONS_URL = "https://github.com/WordPress/dashicons/archive/master.zip"
-_FEATHER_ICONS_URL = "https://github.com/feathericons/feather/archive/v{}.zip"
-_GOOGLE_EMOJIS_URL = "https://github.com/googlefonts/noto-emoji/archive/" \
-                     "v2019-11-19-unicode12.zip"
-_UNICODE_EMOJIS_URL = "https://unicode.org/Public/emoji/13.0/emoji-test.txt"
-_EMOJIONE_LEGACY_URL = "https://github.com/joypixels/emojione-legacy/" \
-                       "archive/master.zip"
 
 
 def fetch():
     # type: () -> None
-    """
-    Fetch all the available icon sets.
-    """
-    fontAwesome()
-    materialDesign()
-    elusiveIcons()
-    dashIcons()
-    featherIcons()
-    googleEmojis()
-    emojioneLegacy()
+    fetchers = []
+
+    for _, member in inspect.getmembers(sys.modules[__name__]):
+        if isinstance(member, type) and \
+                issubclass(member, Fetcher) and \
+                member not in (Fetcher, EmojiFetcher):
+            fetchers.append(member)
+
+    for fetcher in fetchers:
+        fetcher.fetch()
 
 
-def fontAwesome(version=None, urlOrFile=None, installLocation=None):
-    # type: (Optional[str], Optional[str], Optional[str]) -> None
-    """
-    Download the FontAwesome images for iconify.
+class Fetcher(object):
 
-    When called with no arguments, version 5.12.1 will be downloaded into the
-    first directory on the iconify path, throwing an EnvironmentError if no
-    path is set.
+    NAMESPACE = None  # type: str
+    URL = None  # type: str
+    ZIP_FILE_PATHS = None  # type: Tuple[str, ...]
 
-    Provide the version argument to pull a specific version of the icons.
+    @classmethod
+    def fetch(cls, urlOrFile=None, installLocation=None):
+        # type: (Optional[str], Optional[str]) -> None
+        print("Fetching {}...".format(cls.__name__))
+        if not installLocation:
+            iconPath = ico.path._ICON_PATH
+            if not iconPath:
+                raise EnvironmentError(
+                    "Please set the ICONIFY_PATH environment variable or "
+                    "provide the 'installLocation' argument..."
+                )
 
-    You can use the url argument to download the zip file from an alternative
-    location or also pass it a zip file on the local disk to use instead.
+            installLocation = os.path.join(iconPath[0], cls.NAMESPACE)
 
-    Parameters
-    ----------
-    version : Optional[str]
-    url : Optional[str]
-    installLocation : Optional[str]
-    """
-    version = version or '5.12.1'
-    installLocation = installLocation or _getInstallLocation('font-awesome')
-    urlOrFile = urlOrFile or _FONT_AWESOME_URL.format(version)
+        if not urlOrFile:
+            urlOrFile = cls.URL
 
-    filename, ext = os.path.splitext(os.path.basename(urlOrFile))
-    zipFilePath = os.path.join(filename, 'svgs')
+        localFile = cls.downloadFile(urlOrFile)
+        cls.installZipFile(localFile, installLocation)
 
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath=zipFilePath,
-    )
+    @classmethod
+    def downloadFile(cls, urlOrFile):
+        # type: (str) -> str
+        if os.path.isfile(urlOrFile):
+            return urlOrFile
 
-
-def materialDesign(version=None, urlOrFile=None, installLocation=None):
-    # type: (Optional[str], Optional[str], Optional[str]) -> None
-    version = version or '4.9.95'
-    installLocation = installLocation or _getInstallLocation('material-design')
-    urlOrFile = urlOrFile or _MATERIAL_DESIGN_URL.format(version)
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='MaterialDesign-SVG-{}/svg'.format(version),
-    )
-
-
-def elusiveIcons(urlOrFile=None, installLocation=None):
-    # type: (Optional[str], Optional[str]) -> None
-    installLocation = installLocation or _getInstallLocation('elusive')
-    urlOrFile = urlOrFile or _ELUSIVE_ICONS_URL
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='elusive-icons-master/dev/icons-svg',
-    )
-
-
-def dashIcons(urlOrFile=None, installLocation=None):
-    # type: (Optional[str], Optional[str]) -> None
-    installLocation = installLocation or _getInstallLocation('dash')
-    urlOrFile = urlOrFile or _DASH_ICONS_URL
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='dashicons-master/sources/svg',
-    )
-
-
-def featherIcons(version=None, urlOrFile=None, installLocation=None):
-    # type: (Optional[str], Optional[str], Optional[str]) -> None
-    version = version or '4.26.0'
-    installLocation = installLocation or _getInstallLocation('feather')
-    urlOrFile = urlOrFile or _FEATHER_ICONS_URL.format(version)
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='feather-{}/icons'.format(version),
-    )
-
-
-def googleEmojis(urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None):
-    # type: (Optional[str], Optional[str], Optional[str]) -> None
-    installLocation = installLocation or _getInstallLocation('google-emojis')
-    urlOrFile = urlOrFile or _GOOGLE_EMOJIS_URL
-    emojiMapUrlOrFile = emojiMapUrlOrFile or _UNICODE_EMOJIS_URL
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='noto-emoji-2019-11-19-unicode12/svg',
-    )
-
-    _renameEmojiFiles(installLocation, emojiMapUrlOrFile)
-    _removeUnsupportedNodes(installLocation)
-
-    _installZipFile(
-        urlOrFile,
-        os.path.join(installLocation, 'flags'),
-        zipFilePath='noto-emoji-2019-11-19-unicode12/'
-        'third_party/region-flags/svg',
-    )
-
-
-def emojioneLegacy(
-    urlOrFile=None, installLocation=None, emojiMapUrlOrFile=None
-):
-    # type: (Optional[str], Optional[str], Optional[str]) -> None
-    installLocation = installLocation or _getInstallLocation('emojione-legacy')
-    urlOrFile = urlOrFile or _EMOJIONE_LEGACY_URL
-    emojiMapUrlOrFile = emojiMapUrlOrFile or _UNICODE_EMOJIS_URL
-
-    _installZipFile(
-        urlOrFile,
-        installLocation,
-        zipFilePath='emojione-legacy-master/svg',
-    )
-
-    _renameEmojiOneFiles(installLocation, emojiMapUrlOrFile)
-
-
-def _getEmojiMap(emojiMapUrlOrFile):
-    # type: (str) -> Mapping[str, str]
-    """
-    Create a map of emoji codes to names for file renaming.
-
-    Parameters
-    ----------
-    emojiMapUrlOrFile : str
-
-    Returns
-    -------
-    Mapping[str, str]
-    """
-    emojiMap = {'200d': 'and'}
-
-    if not os.path.isfile(emojiMapUrlOrFile):
-        emojiMapUrlOrFile = _downloadFile(emojiMapUrlOrFile)
-
-    with _openFile(emojiMapUrlOrFile) as infile:
-        emojiDataLines = infile.readlines()  # type: List[str]
-
-    for line in emojiDataLines:
-        match = re.match(
-            r"^(.*);.*E[0-9\.]+(.*)$",
-            str(line),
+        urlFile = os.path.basename(urlOrFile)
+        downloadDest = os.path.join(
+            tempfile.gettempdir(),
+            'iconifyTempDownload',
+            cls.NAMESPACE,
+            urlFile,
         )
-        if not match:
-            continue
 
-        code, name = match.groups()
+        if not os.path.isfile(downloadDest):
+            print('Downloading file: {}'.format(urlOrFile))
+            destDir = os.path.dirname(downloadDest)
+            if not os.path.isdir(destDir):
+                os.makedirs(destDir)
+            urlretrieve(urlOrFile, downloadDest)
+        else:
+            print("Found existing download: {}".format(downloadDest))
 
-        codes = code.strip().split(' ')
-        names = name.strip().split(':')
+        return downloadDest
 
-        if len(codes) == 1:
-            names = [name.strip()]
+    @classmethod
+    def installZipFile(cls, localFile, installLocation):
+        # type: (str, str) -> None
+        tmpdir = os.path.join(tempfile.gettempdir(), 'iconifyTempExtraction')
+        if os.path.isdir(tmpdir):
+            distutils.dir_util.remove_tree(tmpdir)
 
-        for i, name in enumerate(names):
-            code = codes[i].strip().lower()
-            if code in emojiMap:
+        print('Extracting to: {}'.format(installLocation))
+        with zipfile.ZipFile(localFile) as zipData:
+            zipData.extractall(tmpdir)
+
+            cls.updateDataHook(installLocation)
+
+            for zipFilePath in cls.ZIP_FILE_PATHS:
+                source = os.path.join(tmpdir, zipFilePath)
+                distutils.dir_util.copy_tree(source, installLocation)
+
+    @classmethod
+    def updateDataHook(cls, installLocation):
+        # type: (str) -> None
+        """
+        An optional hook that an be used to update the downloaded
+        data prior to being installed on the host system.
+        """
+
+
+#
+# Fetch Implementations
+#
+class FontAwesome(Fetcher):
+
+    NAMESPACE = "font-awesome"
+    URL = "https://github.com/FortAwesome/Font-Awesome/releases/" \
+          "download/5.12.1/fontawesome-free-5.12.1-desktop.zip"
+    ZIP_FILE_PATHS = ("fontawesome-free-5.12.1-desktop/svgs", )
+
+
+class MaterialDesign(Fetcher):
+
+    NAMESPACE = "material-design"
+    URL = "https://github.com/Templarian/MaterialDesign-SVG/" \
+          "archive/v4.9.95.zip"
+    ZIP_FILE_PATHS = ("MaterialDesign-SVG-4.9.95/svg", )
+
+
+class Elusive(Fetcher):
+
+    NAMESPACE = "elusive"
+    URL = "https://github.com/reduxframework/elusive-icons/" \
+          "archive/master.zip"
+    ZIP_FILE_PATHS = ("elusive-icons-master/dev/icons-svg", )
+
+
+class Dash(Fetcher):
+
+    NAMESPACE = "dash"
+    URL = "https://github.com/WordPress/dashicons/archive/master.zip"
+    ZIP_FILE_PATHS = ("dashicons-master/sources/svg", )
+
+
+class Feather(Fetcher):
+
+    NAMESPACE = "feather"
+    URL = "https://github.com/feathericons/feather/archive/v4.26.0.zip"
+    ZIP_FILE_PATHS = ("feather-4.26.0/icons", )
+
+
+class EmojiFetcher(Fetcher):
+
+    NAMESPACE = 'BaseEmoji'
+    EMOJI_MAP_URL = "https://unicode.org/Public/emoji/13.0/emoji-test.txt"
+
+    @classmethod
+    def getEmojiMap(cls):
+        # type: () -> Mapping[str, str]
+        """
+        Create a map of emoji codes to names for file renaming.
+
+        Returns
+        -------
+        Mapping[str, str]
+        """
+        emojiMap = {'200d': 'and'}
+
+        emojiMapUrlOrFile = cls.downloadFile(cls.EMOJI_MAP_URL)
+
+        with _openFile(emojiMapUrlOrFile) as infile:
+            emojiDataLines = infile.readlines()  # type: List[str]
+
+        for line in emojiDataLines:
+            match = re.match(
+                r"^(.*);.*E[0-9\.]+(.*)$",
+                str(line),
+            )
+            if not match:
                 continue
-            emojiMap[code.strip().lower()] = _cleanName(name)
 
-    return emojiMap
+            code, name = match.groups()
+
+            codes = code.strip().split(' ')
+            names = name.strip().split(':')
+
+            if len(codes) == 1:
+                names = [name.strip()]
+
+            for i, name in enumerate(names):
+                code = codes[i].strip().lower()
+                if code in emojiMap:
+                    continue
+                emojiMap[code.strip().lower()] = _cleanName(name)
+
+        return emojiMap
+
+
+class GoogleEmojis(EmojiFetcher):
+
+    NAMESPACE = "google-emojis"
+    URL = "https://github.com/googlefonts/noto-emoji/archive/" \
+          "v2019-11-19-unicode12.zip"
+    ZIP_FILE_PATHS = ("noto-emoji-2019-11-19-unicode12/svg", )
+
+    @classmethod
+    def updateDataHook(cls, installLocation):
+        # type: (str) -> None
+        emojiMap = cls.getEmojiMap()
+        cls._renameEmojiFiles(installLocation, emojiMap)
+        cls._removeUnsupportedNodes(installLocation)
+
+    @classmethod
+    def _renameEmojiFiles(cls, installLocation, emojiMap):
+        # type: (str, Mapping[str, str]) -> None
+        for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+            basename = os.path.basename(svg)
+            basename, ext = os.path.splitext(basename)
+
+            newParts = []
+
+            for part in basename.replace('emoji_u', '').split('_'):
+                alias = emojiMap.get(part)
+                if alias:
+                    newParts.append(alias)
+
+            if not newParts or all([a == 'and' for a in newParts]):
+                continue
+
+            alias = '-'.join(newParts).replace(':', '')
+            if basename != alias:
+                os.rename(svg, svg.replace(basename, alias))
+
+    @classmethod
+    def _removeUnsupportedNodes(cls, installLocation):
+        # type: (str) -> None
+        for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+            dom = QtXml.QDomDocument("initData")
+
+            svgFile = QtCore.QFile(svg)
+            svgFile.open(QtCore.QIODevice.ReadOnly)
+            dom.setContent(svgFile)
+            svgFile.close()
+
+            defNodes = dom.elementsByTagName('defs')
+            for i in range(defNodes.count()):
+                node = defNodes.item(0)
+                node.parentNode().removeChild(node)
+
+            symbolNodes = dom.elementsByTagName('symbol')
+            for i in range(symbolNodes.count()):
+                node = symbolNodes.item(0)
+                node.parentNode().removeChild(node)
+
+            byteArray = QtCore.QByteArray()
+            textStream = QtCore.QTextStream(byteArray)
+            dom.save(textStream, 0)
+
+            svgFile = QtCore.QFile(svg)
+            svgFile.open(QtCore.QIODevice.WriteOnly)
+            svgFile.write(byteArray)
+            svgFile.close()
+
+
+class EmojioneLegacy(EmojiFetcher):
+
+    NAMESPACE = "emojione-legacy"
+    URL = "https://github.com/joypixels/emojione-legacy/archive/master.zip"
+    ZIP_FILE_PATHS = ("emojione-legacy-master/svg", )
+
+    @classmethod
+    def updateDataHook(cls, installLocation):
+        # type: (str) -> None
+        emojiMap = cls.getEmojiMap()
+        cls._renameEmojiFiles(installLocation, emojiMap)
+
+    @classmethod
+    def _renameEmojiFiles(cls, installLocation, emojiMap):
+        # type: (str, Mapping[str, str]) -> None
+        """
+        Rename emojione files by replacing the emoji code with the nice name.
+
+        Parameters
+        ----------
+        installLocation : str
+        emojiMap : Mapping[str, str]
+        """
+        for svg in glob.glob(os.path.join(installLocation, '*.svg')):
+            basename = os.path.basename(svg)
+            basename, ext = os.path.splitext(basename)
+
+            newParts = []
+
+            for part in basename.split('-'):
+                alias = emojiMap.get(part.lower())
+                if alias:
+                    newParts.append(alias)
+
+            if not newParts or all([a == 'and' for a in newParts]):
+                continue
+
+            alias = '-'.join(newParts).replace(':', '')
+            if basename != alias:
+                os.rename(svg, svg.replace(basename, alias))
 
 
 def _cleanName(name):
@@ -238,150 +324,3 @@ def _openFile(filePath):
         return open(filePath, 'r', encoding='utf-8')
     else:
         return open(filePath, 'r')
-
-
-def _renameEmojiOneFiles(installLocation, emojiMapUrlOrFile):
-    # type: (str, str) -> None
-    """
-    Rename emojione files by replacing the emoji code with the nice name.
-
-    Parameters
-    ----------
-    installLocation : str
-    emojiMapUrlOrFile : str
-    """
-    emojiMap = _getEmojiMap(emojiMapUrlOrFile)
-
-    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
-        basename = os.path.basename(svg)
-        basename, ext = os.path.splitext(basename)
-
-        newParts = []
-
-        for part in basename.split('-'):
-            alias = emojiMap.get(part.lower())
-            if alias:
-                newParts.append(alias)
-
-        if not newParts or all([a == 'and' for a in newParts]):
-            continue
-
-        alias = '-'.join(newParts).replace(':', '')
-        if basename != alias:
-            os.rename(svg, svg.replace(basename, alias))
-
-
-def _renameEmojiFiles(installLocation, emojiMapUrlOrFile):
-    # type: (str, str) -> None
-    """
-    Rename google emoji files by replacing the emoji code with the nice name.
-
-    Parameters
-    ----------
-    installLocation : str
-    emojiMapUrlOrFile : str
-    """
-    emojiMap = _getEmojiMap(emojiMapUrlOrFile)
-
-    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
-        basename = os.path.basename(svg)
-        basename, ext = os.path.splitext(basename)
-
-        newParts = []
-
-        for part in basename.replace('emoji_u', '').split('_'):
-            alias = emojiMap.get(part)
-            if alias:
-                newParts.append(alias)
-
-        if not newParts or all([a == 'and' for a in newParts]):
-            continue
-
-        alias = '-'.join(newParts).replace(':', '')
-        if basename != alias:
-            os.rename(svg, svg.replace(basename, alias))
-
-
-def _removeUnsupportedNodes(installLocation):
-    # type: (str) -> None
-    for svg in glob.glob(os.path.join(installLocation, '*.svg')):
-
-        dom = QtXml.QDomDocument("initData")
-
-        svgFile = QtCore.QFile(svg)
-        svgFile.open(QtCore.QIODevice.ReadOnly)
-        dom.setContent(svgFile)
-        svgFile.close()
-
-        defNodes = dom.elementsByTagName('defs')
-        for i in range(defNodes.count()):
-            node = defNodes.item(0)
-            node.parentNode().removeChild(node)
-
-        symbolNodes = dom.elementsByTagName('symbol')
-        for i in range(symbolNodes.count()):
-            node = symbolNodes.item(0)
-            node.parentNode().removeChild(node)
-
-        byteArray = QtCore.QByteArray()
-        textStream = QtCore.QTextStream(byteArray)
-        dom.save(textStream, 0)
-
-        svgFile = QtCore.QFile(svg)
-        svgFile.open(QtCore.QIODevice.WriteOnly)
-        svgFile.write(byteArray)
-        svgFile.close()
-
-
-def _installZipFile(urlOrFilePath, installLocation, zipFilePath=None):
-    # type: (str, str, Optional[str]) -> None
-    if not os.path.isdir(installLocation):
-        os.makedirs(installLocation)
-
-    if not os.path.isfile(urlOrFilePath):
-        urlOrFilePath = _downloadFile(urlOrFilePath)
-
-    tmpdir = os.path.join(tempfile.gettempdir(), 'iconfiyTempExtraction')
-    if os.path.isdir(tmpdir):
-        distutils.dir_util.remove_tree(tmpdir)
-
-    print('Extracting to: {}'.format(installLocation))
-    with zipfile.ZipFile(urlOrFilePath) as zipData:
-        zipData.extractall(tmpdir)
-
-        if zipFilePath:
-            source = os.path.join(tmpdir, zipFilePath)
-        else:
-            source = tmpdir
-
-        distutils.dir_util.copy_tree(source, installLocation)
-
-
-def _downloadFile(url):
-    # type: (str) -> str
-    urlFile = os.path.basename(url)
-    downloadDest = os.path.join(
-        tempfile.gettempdir(),
-        'iconfiyTempDownload',
-        urlFile,
-    )
-
-    if not os.path.isfile(downloadDest):
-        print('Downloading file: {}'.format(url))
-        urlretrieve(url, downloadDest)
-    else:
-        print("Found existing download: {}".format(downloadDest))
-
-    return downloadDest
-
-
-def _getInstallLocation(suffix):
-    # type: (str) -> str
-    iconPath = ico.path._ICON_PATH
-    if not iconPath:
-        raise EnvironmentError(
-            "Please set the ICONIFY_PATH environment variable or "
-            "provide the 'installLocation' argument..."
-        )
-
-    return os.path.join(iconPath[0], suffix)
