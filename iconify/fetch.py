@@ -24,6 +24,9 @@ else:
 
 def fetch():
     # type: () -> None
+    """
+    Run all the available fetchers.
+    """
     fetchers = []
 
     for _, member in inspect.getmembers(sys.modules[__name__]):
@@ -37,14 +40,40 @@ def fetch():
 
 
 class Fetcher(object):
+    """
+    The base class for all Fetchers which downloads the identified zip file,
+    extracts potentially multiple sub paths from that file and installs them
+    into the first available path found on the ICONIFY_PATH variable.
 
+    It's main entry point is `fetch()` and should be fully functional when
+    called with no arguments.
+    """
+
+    # The namespace is used when installing the files onto the system
+    # and will be the prefix shown in the browser and subsequent usages.
     NAMESPACE = None  # type: str
+
+    # The location to download the zip file from
     URL = None  # type: str
+
+    # The sub paths of the zip file to extract and install
     ZIP_FILE_PATHS = None  # type: Tuple[str, ...]
 
     @classmethod
     def fetch(cls, urlOrFile=None, installLocation=None):
         # type: (Optional[str], Optional[str]) -> None
+        """
+        Downloads and installs a zip file into the iconify path.
+
+        Parameters
+        ----------
+        urlOrFile : Optional[str]
+            The location of the file to unpack.  If not provided, the location
+            defined with the URL class var will be used.
+        installLocation
+            The location to install the content to. When not provided, the
+            first directory on the iconify path will be used.
+        """
         print("Fetching {}...".format(cls.__name__))
         if not installLocation:
             iconPath = ico.path._ICON_PATH
@@ -65,6 +94,21 @@ class Fetcher(object):
     @classmethod
     def downloadFile(cls, urlOrFile):
         # type: (str) -> str
+        """
+        Downloads the provided file into a temporary location and returns that
+        location.
+
+        If a file already exists at the temporary location, it will be used
+        rather than downloading the file again.
+
+        Parameters
+        ----------
+        urlOrFile : str
+
+        Returns
+        -------
+        str
+        """
         if os.path.isfile(urlOrFile):
             return urlOrFile
 
@@ -90,11 +134,21 @@ class Fetcher(object):
     @classmethod
     def installZipFile(cls, localFile, installLocation):
         # type: (str, str) -> None
+        """
+        Extract the provided zip file, and install the sub paths identified by
+        the ZIP_FILE_PATHS class var into the provided installLocation.
+
+        Parameters
+        ----------
+        localFile : str
+        installLocation : str
+        """
         tmpdir = os.path.join(tempfile.gettempdir(), 'iconifyTempExtraction')
         if os.path.isdir(tmpdir):
             distutils.dir_util.remove_tree(tmpdir)
 
         print('Extracting to: {}'.format(installLocation))
+        print(localFile)
         with zipfile.ZipFile(localFile) as zipData:
             zipData.extractall(tmpdir)
 
@@ -155,6 +209,10 @@ class Feather(Fetcher):
 
 
 class EmojiFetcher(Fetcher):
+    """
+    A Fetcher subclass specifically for emojis as they require additional
+    processing when downloading and installing.
+    """
 
     NAMESPACE = 'BaseEmoji'
     EMOJI_MAP_URL = "https://unicode.org/Public/emoji/13.0/emoji-test.txt"
@@ -163,7 +221,7 @@ class EmojiFetcher(Fetcher):
     def getEmojiMap(cls):
         # type: () -> Mapping[str, str]
         """
-        Create a map of emoji codes to names for file renaming.
+        Create a map of emoji codes to name.
 
         Returns
         -------
@@ -211,6 +269,14 @@ class GoogleEmojis(EmojiFetcher):
     @classmethod
     def updateDataHook(cls, installLocation):
         # type: (str) -> None
+        """
+        Re-implemented to rename the emoji files and update the files so
+        that they're more compatible with Qt's tiny svg spec.
+
+        Parameters
+        ----------
+        installLocation : str
+        """
         emojiMap = cls.getEmojiMap()
         cls._renameEmojiFiles(installLocation, emojiMap)
         cls._removeUnsupportedNodes(installLocation)
@@ -218,6 +284,14 @@ class GoogleEmojis(EmojiFetcher):
     @classmethod
     def _renameEmojiFiles(cls, installLocation, emojiMap):
         # type: (str, Mapping[str, str]) -> None
+        """
+        Replace the unicode codes in the source files with their display names.
+
+        Parameters
+        ----------
+        installLocation : str
+        emojiMap : Mapping[str, str]
+        """
         for svg in glob.glob(os.path.join(installLocation, '*.svg')):
             basename = os.path.basename(svg)
             basename, ext = os.path.splitext(basename)
@@ -240,6 +314,14 @@ class GoogleEmojis(EmojiFetcher):
     @classmethod
     def _removeUnsupportedNodes(cls, installLocation):
         # type: (str) -> None
+        """
+        Removes unsupported nodes from svg files found under the provided
+        installLocation and re-writes them in place.
+
+        Parameters
+        ----------
+        installLocation : str
+        """
         for svg in glob.glob(os.path.join(installLocation, '*.svg')):
             dom = QtXml.QDomDocument("initData")
 
@@ -313,6 +395,17 @@ class EmojioneLegacy(EmojiFetcher):
 
 def _cleanName(name):
     # type: (str) -> str
+    """
+    Clean the emoji names that have been parsed from the source file.
+
+    Parameters
+    ----------
+    name : str
+
+    Returns
+    -------
+    str
+    """
     name = name.strip()
     name = name.replace(' ', '-').replace(':', '')
     stripped = (c for c in name if 0 < ord(c) < 127)
@@ -322,6 +415,17 @@ def _cleanName(name):
 
 def _openFile(filePath):
     # type: (str) -> IO[Any]
+    """
+    Return an open file object from both python 2 and 3.
+
+    Parameters
+    ----------
+    filePath : str
+
+    Returns
+    -------
+    IO[Any]
+    """
     if sys.version_info[0] == 3:
         return open(filePath, 'r', encoding='utf-8')
     else:

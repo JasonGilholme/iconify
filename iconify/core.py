@@ -27,9 +27,10 @@ class Icon(QtGui.QIcon):
     ):
         # type: (...) -> QtGui.QIcon
         """
-        This returns a patched QtGui.QIcon object so that the QIcon has
-        convenience functions for finding the animation and pixmap generator,
-        but is also usable with Qt's model view framework.
+        Return a QtGui.QIcon with extra convenience methods patched onto it.
+
+        Patching a QIcon, rather than subclassing it, is required for the
+        object to work correctly with Qt's model / view framework.
 
         Parameters
         ----------
@@ -86,11 +87,38 @@ class _IconEngine(QtGui.QIconEngine):
         state=QtGui.QIcon.Off  # type: QtGui.QIcon.State
     ):
         # type: (...) -> None
+        """
+        Use the provided path, color and animation when an icon is requested
+        for the identified mode and state.
+
+        Parameters
+        ----------
+        path : str
+        color : Optional[QtGui.QColor]
+        anim : Optional[BaseAnimation]
+        mode : QtGui.QIcon.Mode
+        state : QtGui.QIcon.Stat
+        """
         generator = PixmapGenerator(path, color=color, anim=anim)
         self._pixmapGenerators[(mode, state)] = generator
 
     def pixmapGenerator(self, mode=QtGui.QIcon.Normal, state=QtGui.QIcon.Off):
         # type: (QtGui.QIcon.Mode, QtGui.QIcon.State) -> PixmapGenerator
+        """
+        Return the PixmapGenerator to use for the provided mode & state.
+
+        If no PixmapGenerator has been defined for the provided mode & state
+        combination, the PixmapGenerator created in the constructor is used.
+
+        Parameters
+        ----------
+        mode : QtGui.QIcon.Mode
+        state : QtGui.QIcon.State
+
+        Returns
+        -------
+        PixmapGenerator
+        """
         return self._pixmapGenerators.get(
             (mode, state),
             self._defaultGenerator,
@@ -102,6 +130,18 @@ class _IconEngine(QtGui.QIconEngine):
         state=QtGui.QIcon.Off,  # type: QtGui.QIcon.State
     ):
         # type: (...) -> Optional[BaseAnimation]
+        """
+        Return the animation used for the provided mode & state.
+
+        Parameters
+        ----------
+        mode : QtGui.QIcon.Mode
+        state : QtGui.QIcon.State
+
+        Returns
+        -------
+        Optional[BaseAnimation]
+        """
         return self.pixmapGenerator(mode=mode, state=state).anim()
 
     def color(
@@ -110,6 +150,18 @@ class _IconEngine(QtGui.QIconEngine):
         state=QtGui.QIcon.Off,  # type: QtGui.QIcon.State
     ):
         # type: (...) -> Optional[QtGui.QColor]
+        """
+        Return the color used for the provided mode & state.
+
+        Parameters
+        ----------
+        mode : QtGui.QIcon.Mode
+        state : QtGui.QIcon.State
+
+        Returns
+        -------
+        Optional[BaseAnimation]
+        """
         return self.pixmapGenerator(mode=mode, state=state).color()
 
     def pixmap(
@@ -119,6 +171,20 @@ class _IconEngine(QtGui.QIconEngine):
         state,  # type: QtGui.QIcon.State
     ):
         # type: (...) -> QtGui.QPixmap
+        """
+        Return a QPixmap to use for the identified mode & state, rendered at
+        the provided size.
+
+        Parameters
+        ----------
+        size : QtCore.QSize
+        mode : QtGui.QIcon.Mode
+        state : QtGui.QIcon.State
+
+        Returns
+        -------
+        QtGui.QPixmap
+        """
         return self.pixmapGenerator(mode=mode, state=state).pixmap(size)
 
     def paint(
@@ -136,8 +202,8 @@ class _IconEngine(QtGui.QIconEngine):
 
 class PixmapGenerator(QtCore.QObject):
     """
-    The PixmapGenerator is responsible for rendering the svg image and
-    applying the transform from the animation during the process.
+    Responsible for rendering the svg image and applying the color and
+    transform from the animation during the process.
 
     It's backed by a cache to ensure that redundant rendering does not happen.
     """
@@ -161,10 +227,24 @@ class PixmapGenerator(QtCore.QObject):
 
     def path(self):
         # type: () -> str
+        """
+        Return the path to the image used by this PixmapGenerator.
+
+        Returns
+        -------
+        str
+        """
         return self._path
 
     def color(self):
         # type: () -> Optional[QtGui.QColor]
+        """
+        Return the color used by this PixmapGenerator.
+
+        Returns
+        -------
+        Optional[QtGui.QColor]
+        """
         return self._color
 
     def anim(self):
@@ -174,15 +254,15 @@ class PixmapGenerator(QtCore.QObject):
 
         Returns
         -------
-        BaseAnimation
+        Optional[BaseAnimation]
         """
         return self._anim
 
     def pixmap(self, size):
         # type: (QtCore.QSize) -> QtGui.QPixmap
         """
-        Render the svg file, apply the color override and the animation
-        transform and return it as a QPixmap.
+        Render the svg file to a QPixmap, applying the color override and the
+        animation transform if applicable.
 
         Parameters
         ----------

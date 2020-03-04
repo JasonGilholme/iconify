@@ -67,6 +67,13 @@ def findIcon(iconPath):
 
 def listIcons():
     # type: () -> List[str]
+    """
+    Return all icons found on the iconify path.
+
+    Returns
+    -------
+    List[str]
+    """
     matches = []  # type: List[str]
     for dir_ in _ICON_PATH:
         for root, dirnames, filenames in os.walk(dir_):
