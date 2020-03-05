@@ -4,6 +4,7 @@ The primary objects for interfacing with iconify
 
 from typing import TYPE_CHECKING, MutableMapping, Optional, Tuple
 
+from iconify.anim import GlobalTick
 from iconify.path import findIcon
 from iconify.qt import QtCore, QtGui, QtSvg
 
@@ -48,14 +49,18 @@ class Icon(QtGui.QIcon):
         def _setAsButtonIcon(button):
             # type: (QtWidgets.QAbstractButton) -> None
             button.setIcon(icon)
-            if anim is not None:
-                anim.tick.connect(button.update)
+            if iconEngine.animCount() > 1:
+                GlobalTick.timeout.connect(button.update)
+            else:
+                if anim is not None:
+                    anim.tick.connect(button.update)
 
         icon.setAsButtonIcon = _setAsButtonIcon
         icon.addState = iconEngine.addState
         icon.pixmapGenerator = iconEngine.pixmapGenerator
         icon.color = iconEngine.color
         icon.anim = iconEngine.anim
+        icon.animCount = iconEngine.animCount
         return icon
 
 
@@ -99,6 +104,8 @@ class _IconEngine(QtGui.QIconEngine):
         mode : QtGui.QIcon.Mode
         state : QtGui.QIcon.Stat
         """
+        color = color or self.color()
+        anim = anim or self.anim()
         generator = PixmapGenerator(path, color=color, anim=anim)
         self._pixmapGenerators[(mode, state)] = generator
 
@@ -143,6 +150,22 @@ class _IconEngine(QtGui.QIconEngine):
         Optional[BaseAnimation]
         """
         return self.pixmapGenerator(mode=mode, state=state).anim()
+
+    def animCount(self):
+        # type: () -> int
+        """
+        Return the number of animations that are associated with the available
+        states of this icon engine.
+
+        Returns
+        -------
+        int
+        """
+        animCount = 0
+        for pixmapGenerator in self._pixmapGenerators.values():
+            if pixmapGenerator.anim() is not None:
+                animCount += 1
+        return animCount
 
     def color(
         self,
@@ -219,11 +242,11 @@ class PixmapGenerator(QtCore.QObject):
     ):
         # type: (...) -> None
         super(PixmapGenerator, self).__init__(parent=parent)
-        self._path = path
+        self._path = findIcon(path)
         self._color = color  # type: Optional[QtGui.QColor]
         self._anim = anim  # type: Optional[BaseAnimation]
 
-        self._renderer = QtSvg.QSvgRenderer(findIcon(self._path))
+        self._renderer = QtSvg.QSvgRenderer(self._path)
 
     def path(self):
         # type: () -> str
