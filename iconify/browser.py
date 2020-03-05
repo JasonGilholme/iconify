@@ -98,7 +98,7 @@ class Browser(QtWidgets.QMainWindow):
         self._previewImage.setFixedSize(QtCore.QSize(200, 200))
 
         self._animCombo = QtWidgets.QComboBox(self)
-        self._animCombo.addItems((NO_ANIM, 'Spin', 'Breathe'))
+        self._animCombo.addItems((NO_ANIM, 'Spin', 'Breathe', 'Scroll'))
         self._animCombo.currentIndexChanged.connect(self._animChanged)
 
         self._colorCombo = QtWidgets.QComboBox(self)

@@ -185,23 +185,23 @@ class Spin(BaseAnimation):
     A simple spinning animation
     """
 
-    _maxFrame = 59
-
     class Directions(Enum):
 
         CLOCKWISE = 0
         ANTI_CLOCKWISE = 1
 
-    def __init__(self, direction=Directions.CLOCKWISE):
-        # type: (Spin.Directions) -> None
+    def __init__(self, direction=Directions.CLOCKWISE, rpm=60):
         super(Spin, self).__init__()
+        self._maxFrame = int(60.0 / (rpm / 60.0))
         self._direction = direction
 
     def transform(self, size):
         # type: (QtCore.QSize) -> QtGui.QTransform
         halfSize = size / 2
 
-        rotation = 6 if self._direction == Spin.Directions.CLOCKWISE else -6
+        rotation = 360.0 / self._maxFrame
+        if self._direction == Spin.Directions.ANTI_CLOCKWISE:
+            rotation *= -1
 
         xfm = QtGui.QTransform()
         xfm = xfm.translate(halfSize.width(), halfSize.height())
@@ -310,3 +310,47 @@ class _ConcatAnim(BaseAnimation):
         for anim in self._anims:
             anim.forceTick()
         super(_ConcatAnim, self).forceTick()
+
+
+class Scroll(BaseAnimation):
+
+    _maxFrame = 60
+
+    class Directions:
+
+        LEFT = 1
+        RIGHT = 2
+        UP = 4
+        DOWN = 8
+
+    def __init__(self, direction=Directions.RIGHT, rpm=60):
+        super(Scroll, self).__init__()
+        self._maxFrame = int(60.0 / (rpm / 60.0))
+        self._direction = direction
+
+    def transform(self, rect):
+        if self._direction & Scroll.Directions.LEFT:
+            xMult = 1
+        elif self._direction & Scroll.Directions.RIGHT:
+            xMult = -1
+        else:
+            xMult = 0
+
+        if self._direction & Scroll.Directions.UP:
+            yMult = 1
+        elif self._direction & Scroll.Directions.DOWN:
+            yMult = -1
+        else:
+            yMult = 0
+
+        frame = self.frame()
+        halfMaxFrame = self._maxFrame / 2
+        stepSize = rect.width() / halfMaxFrame
+        if frame > halfMaxFrame:
+            offset = stepSize * (self._maxFrame - frame)
+        else:
+            offset = stepSize * -frame
+
+        xfm = QtGui.QTransform()
+        xfm.translate(offset * xMult, offset * yMult)
+        return xfm
