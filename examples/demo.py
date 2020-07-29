@@ -1,12 +1,11 @@
 
 import os
 
-os.environ["ICONIFY_QTLIB"] = "PySide2"
 os.environ["ICONIFY_PATH"] = os.path.dirname(__file__) + "/icons"
 
-from PySide2 import QtCore, QtGui, QtWidgets
 
 import iconify as ico
+from iconify.qt import QtCore, QtGui, QtWidgets
 
 
 app = QtWidgets.QApplication([])

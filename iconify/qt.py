@@ -26,3 +26,6 @@ _IMPORT_ERROR_MESSAGE = \
 
 if None in (QtCore, QtGui, QtSvg, QtWidgets, QtXml):
     raise ImportError(_IMPORT_ERROR_MESSAGE.format(qtlib))
+
+if qtlib == "PyQt5":
+    QtCore.Signal = QtCore.pyqtSignal
