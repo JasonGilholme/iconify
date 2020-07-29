@@ -299,11 +299,11 @@ class PixmapGenerator(QtCore.QObject):
 
         if self._anim is not None:
             key = (
-                self._path, size, str(self._anim.__class__),
+                self._path, str(size), str(self._anim.__class__),
                 self._anim.frame(), color
             )  # type: PixmapCacheKey
         else:
-            key = (self._path, size, "", 0, color)
+            key = (self._path, str(size), "", 0, color)
 
         if key in self._pixmapCache:
             return self._pixmapCache[key]
@@ -324,17 +324,12 @@ class PixmapGenerator(QtCore.QObject):
             painter.setTransform(xfm)
 
         self._renderer.render(painter)
-        painter.end()
 
         if self._color is not None:
-            # Use the alpha channel on a solid colour image
-            colorImage = QtGui.QImage(
-                size,
-                QtGui.QImage.Format_ARGB32_Premultiplied,
-            )
-            colorImage.fill(QtGui.QColor(self._color))
-            colorImage.setAlphaChannel(image.alphaChannel())
-            image = colorImage
+            painter.setCompositionMode(QtGui.QPainter.CompositionMode_SourceIn)
+            painter.fillRect(image.rect(), QtGui.QColor(self._color))
+
+        painter.end()
 
         pixmap = QtGui.QPixmap.fromImage(image)
         self._pixmapCache[key] = pixmap

@@ -1,10 +1,15 @@
 
 import os
 
-os.environ["ICONIFY_QTLIB"] = "PySide2"
+import pydoc
+
 os.environ["ICONIFY_PATH"] = os.path.dirname(__file__) + "/icons"
 
-from PySide2 import QtCore, QtGui, QtWidgets
+qtlib = os.environ.get("ICONIFY_QTLIB", "PySide2")
+QtCore = pydoc.locate(qtlib + '.QtCore')
+QtGui = pydoc.locate(qtlib + '.QtGui')
+QtWidgets = pydoc.locate(qtlib + '.QtWidgets')
+
 
 import iconify as ico
 
