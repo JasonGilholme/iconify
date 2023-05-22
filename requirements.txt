@@ -1,4 +1,4 @@
 enum34==1.1.9; python_version <= '3.3'
 kids.cache==0.0.7
-requests==2.23.0
+requests==2.31.0
 typing==3.7.4
